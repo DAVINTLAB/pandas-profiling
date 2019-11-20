@@ -322,13 +322,15 @@
 			svg.append("text")
 				.text(missing+"%")
 				.attr("font-size", fontSize)
-				.attr("x", function() {return width - 5 - this.getComputedTextLength();})
+				.attr("text-anchor", "end")
+				.attr("x", width - 5)
 				.attr("y", bHeight - 5)
 				.attr("fill", "black");
 			svg.append("text")
 				.text("Missing")
 				.attr("font-size", fontSize)
-				.attr("x", function() {return width - 5 - this.getComputedTextLength();})
+				.attr("text-anchor", "end")
+				.attr("x", width - 5)
 				.attr("y", height - 5)
 				.attr("fill", "rgb(209, 60, 75)");
 				
