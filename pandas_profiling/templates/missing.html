@@ -1,14 +1,16 @@
 <div class="row variablerow">
 	<div class="row col-md-12" id="descriptives">
 		<script>
-			d3.select("#matrixLink").attr("href", "#matrix"+id).attr("aria-controls", "matrix"+id).attr("id", "matrixLink"+id);
-			d3.select("#barLink").attr("href", "#bar"+id).attr("aria-controls", "bar"+id).attr("id", "barLink"+id);
-			d3.select("#heatLink").attr("href", "#heat"+id).attr("aria-controls", "heat"+id).attr("id", "heatLink"+id);
-			d3.select("#dendrogramLink").attr("href", "#dendrogram"+id).attr("aria-controls", "dendrogram"+id).attr("id", "dendrogramLink"+id);
-			d3.select("#matrix").attr("id", "matrix"+id);
-			d3.select("#bar").attr("id", "bar"+id);
-			d3.select("#heat").attr("id", "heat"+id);
-			d3.select("#dendrogram").attr("id", "dendrogram"+id);
+			require(['d3'], function(d3){
+				d3.select("#matrixLink").attr("href", "#matrix"+id).attr("aria-controls", "matrix"+id).attr("id", "matrixLink"+id);
+				d3.select("#barLink").attr("href", "#bar"+id).attr("aria-controls", "bar"+id).attr("id", "barLink"+id);
+				d3.select("#heatLink").attr("href", "#heat"+id).attr("aria-controls", "heat"+id).attr("id", "heatLink"+id);
+				d3.select("#dendrogramLink").attr("href", "#dendrogram"+id).attr("aria-controls", "dendrogram"+id).attr("id", "dendrogramLink"+id);
+				d3.select("#matrix").attr("id", "matrix"+id);
+				d3.select("#bar").attr("id", "bar"+id);
+				d3.select("#heat").attr("id", "heat"+id);
+				d3.select("#dendrogram").attr("id", "dendrogram"+id);
+			});
 		</script>
 		<ul class="nav nav-tabs" role="tablist">
 			<li role="presentation" class="active"><a id="matrixLink" href="#matrix"

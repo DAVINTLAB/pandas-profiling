@@ -1,406 +1,416 @@
 <script>
 	function plotVaribleTypesChart(svg, data) {
-		var barHeight = 25;
-		var color = d3.scaleOrdinal()
-			.domain(data.map(d => d.name))
-			.range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), data.length).reverse());
-		var margin = {left: 20, right: 20}
-		var width = 350;
-		var height = 60;
-		svg
-			.attr("width", width + margin.left + margin.right)
-			.attr("height", height);
-		var tooltip = d3.select("body")
-			.append("div")
-			.style("position", "absolute")
-			.style("z-index", "10")
-			.style("visibility", "hidden")
-			.style("background-color", "white")
-			.style("border-radius", "3px")
-			.style("border-style", "solid")
-			.style("border-color", "black")
-			.style("border-width", "thin")
-			.style("padding", "2px");
-		var total = 0;
-		for(var i = 0; i < data.length; i++) {
-			data[i].start = total;
-			total += data[i].number;
-		}
-		var curWidth = 0;
-		svg.append("g")
-			.selectAll("rect")
-			.data(data)
-			.join("rect")
-			.attr("height", barHeight)
-			.attr("width", d => (d.number / total * width))
-			.attr("x", d => (margin.left + d.start / total * width))
-			.attr("y", height - barHeight)
-			.attr("fill", d => color(d.name))
-			.on("mouseover", d => tooltip.style("visibility", "visible").text(d.name+": "+d.number))
-			.on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
-			.on("mouseout", function(){return tooltip.style("visibility", "hidden");});
-		
-		var borderRadius = barHeight * 3 / 20
-		
-		svg.append("path")
-			.attr("d", "M "+(margin.left - 0.5)+" "+(height - barHeight - 0.5)+" L "+(margin.left - 0.5)+" "+(height - barHeight + borderRadius)+" S "+(margin.left - 0.5)+" "+(height - barHeight - 0.5)+" "+(margin.left + borderRadius)+" "+(height - barHeight - 0.5)+" Z")
-			.attr("stroke", "white")
-			.attr("fill", "white");
-		svg.append("path")
-			.attr("d", "M "+(margin.left - 0.5)+" "+(height + 0.5)+" L "+(margin.left - 0.5)+" "+(height - borderRadius)+" S "+(margin.left - 0.5)+" "+(height + 0.5)+" "+(margin.left + borderRadius)+" "+(height + 0.5)+" Z")
-			.attr("stroke", "white")
-			.attr("fill", "white");
-		svg.append("path")
-			.attr("d", "M "+(width + margin.right + 0.5)+" "+(height - barHeight - 0.5)+" L "+(width + margin.right + 0.5)+" "+(height - barHeight + borderRadius)+" S "+(width + margin.right + 0.5)+" "+(height - barHeight - 0.5)+" "+(width + margin.right - borderRadius)+" "+(height - barHeight - 0.5)+" Z")
-			.attr("stroke", "white")
-			.attr("fill", "white");
-		svg.append("path")
-			.attr("d", "M "+(width + margin.right + 0.5)+" "+(height + 0.5)+" L "+(width + margin.right + 0.5)+" "+(height - borderRadius)+" S "+(width + margin.right + 0.5)+" "+(height + 0.5)+" "+(width + margin.right - borderRadius)+" "+(height + 0.5)+" Z")
-			.attr("stroke", "white")
-			.attr("fill", "white");
+		require(['d3'], function(d3){
+			var barHeight = 25;
+			var color = d3.scaleOrdinal()
+				.domain(data.map(d => d.name))
+				.range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), data.length).reverse());
+			var margin = {left: 20, right: 20}
+			var width = 350;
+			var height = 60;
+			svg
+				.attr("width", width + margin.left + margin.right)
+				.attr("height", height);
+			var tooltip = d3.select("body")
+				.append("div")
+				.style("position", "absolute")
+				.style("z-index", "10")
+				.style("visibility", "hidden")
+				.style("background-color", "white")
+				.style("border-radius", "3px")
+				.style("border-style", "solid")
+				.style("border-color", "black")
+				.style("border-width", "thin")
+				.style("padding", "2px");
+			var total = 0;
+			for(var i = 0; i < data.length; i++) {
+				data[i].start = total;
+				total += data[i].number;
+			}
+			var curWidth = 0;
+			svg.append("g")
+				.selectAll("rect")
+				.data(data)
+				.join("rect")
+				.attr("height", barHeight)
+				.attr("width", d => (d.number / total * width))
+				.attr("x", d => (margin.left + d.start / total * width))
+				.attr("y", height - barHeight)
+				.attr("fill", d => color(d.name))
+				.on("mouseover", d => tooltip.style("visibility", "visible").text(d.name+": "+d.number))
+				.on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+				.on("mouseout", function(){return tooltip.style("visibility", "hidden");});
 			
-		svg.append("g")
-			.selectAll("text")
-			.data(data)
-			.join("text")
-			.attr("x", d => (margin.left + 5 + d.start / total * width))
-			.attr("y", height - 5)
-			.attr("fill", "black")
-			.text(function(d){if(d.number / total * width >= 50){return parseFloat((d.number / total * 100).toFixed(1))+"%";} return "";})
-			.on("mouseover", d => tooltip.style("visibility", "visible").text(d.name+": "+d.number))
-			.on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
-			.on("mouseout", function(){return tooltip.style("visibility", "hidden");});
-		
-		var groups = [];
-		var aux = [];
-		for(var i = 0; i < data.length; i++) {
-			if(data[i].number / total * width >= 50) {
-				if(aux.length > 0) {
-					groups.push(aux);
-					aux = [];
-				}
-			} else {
-				if(data[i].number != 0){
-					aux.push(data[i]);
-				}
-			}
-		}
-		if(aux.length > 0) {
-			groups.push(aux);
-		}
-		if(groups.length > 0) {
-			var labelLength = 45;
-			var group = [];
-			var groupLength = 0;
-			var center = 0, start = 0;
-			var labels = [];
-			for(var i = 0; i < groups.length; i++) {
-				group = groups[i];
-				groupLength = labelLength * group.length;
-				center = margin.left + (group[0].start / total * width + (group[group.length-1].start / total * width + (group[group.length-1].number / total * width))) / 2;
-				start = center - groupLength / 2;
-				for(var j = 0; j < group.length; j++) {
-					group[j].labelX = start + j * labelLength;
-					labels.push(group[j]);
-				}
-			}
-			var offset;
-			group = groups[0];
-			if(group[0].labelX < 0) {
-				offset = group[0].labelX;
-				for(var i = 0; i < group.length; i++) {
-					group[i].labelX = group[i].labelX - offset;
-				}
-			}
-			var leftGroupEnd;
-			for(var i = 1; i < groups.length; i++) {
-				group = groups[i];
-				leftGroupEnd = groups[i - 1][0].labelX + labelLength * groups[i - 1].length;
-				if(group[0].labelX < leftGroupEnd) {
-					offset = leftGroupEnd - group[0].labelX;
-					for(var j = 0; j < group.length; j++) {
-						group[j].labelX = group[j].labelX + offset;
-					}
-				}
-			}
-			group = groups[groups.length - 1];
-			if(group[0].labelX + labelLength * group.length > width + margin.right + margin.left) {
-				offset = group[0].labelX + labelLength * group.length - (width + margin.right + margin.left);
-				for(var i = 0; i < group.length; i++) {
-					group[i].labelX = group[i].labelX - offset;
-				}
-			}
-			var rightGroupStart;
-			for(var i = groups.length - 2; i >= 0; i--) {
-				group = groups[i];
-				rightGroupStart = groups[i + 1][0].labelX;
-				if(group[0].labelX + group.length * labelLength > rightGroupStart) {
-					offset = group[0].labelX + group.length * labelLength - rightGroupStart;
-					for(var j = 0; j < group.length; j++) {
-						group[j].labelX = group[j].labelX - offset;
-					}
-				}
-			}
+			var borderRadius = barHeight * 3 / 20
 			
+			svg.append("path")
+				.attr("d", "M "+(margin.left - 0.5)+" "+(height - barHeight - 0.5)+" L "+(margin.left - 0.5)+" "+(height - barHeight + borderRadius)+" S "+(margin.left - 0.5)+" "+(height - barHeight - 0.5)+" "+(margin.left + borderRadius)+" "+(height - barHeight - 0.5)+" Z")
+				.attr("stroke", "white")
+				.attr("fill", "white");
+			svg.append("path")
+				.attr("d", "M "+(margin.left - 0.5)+" "+(height + 0.5)+" L "+(margin.left - 0.5)+" "+(height - borderRadius)+" S "+(margin.left - 0.5)+" "+(height + 0.5)+" "+(margin.left + borderRadius)+" "+(height + 0.5)+" Z")
+				.attr("stroke", "white")
+				.attr("fill", "white");
+			svg.append("path")
+				.attr("d", "M "+(width + margin.right + 0.5)+" "+(height - barHeight - 0.5)+" L "+(width + margin.right + 0.5)+" "+(height - barHeight + borderRadius)+" S "+(width + margin.right + 0.5)+" "+(height - barHeight - 0.5)+" "+(width + margin.right - borderRadius)+" "+(height - barHeight - 0.5)+" Z")
+				.attr("stroke", "white")
+				.attr("fill", "white");
+			svg.append("path")
+				.attr("d", "M "+(width + margin.right + 0.5)+" "+(height + 0.5)+" L "+(width + margin.right + 0.5)+" "+(height - borderRadius)+" S "+(width + margin.right + 0.5)+" "+(height + 0.5)+" "+(width + margin.right - borderRadius)+" "+(height + 0.5)+" Z")
+				.attr("stroke", "white")
+				.attr("fill", "white");
+				
 			svg.append("g")
 				.selectAll("text")
-				.data(labels)
+				.data(data)
 				.join("text")
-				.attr("x", d => d.labelX)
-				.attr("y", 15)
-				.text(d => (parseFloat((d.number / total * 100).toFixed(1))+"%"));
+				.attr("x", d => (margin.left + 5 + d.start / total * width))
+				.attr("y", height - 5)
+				.attr("fill", "black")
+				.text(function(d){if(d.number / total * width >= 50){return parseFloat((d.number / total * 100).toFixed(1))+"%";} return "";})
+				.on("mouseover", d => tooltip.style("visibility", "visible").text(d.name+": "+d.number))
+				.on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+				.on("mouseout", function(){return tooltip.style("visibility", "hidden");});
 			
-			svg.append("g")
-				.selectAll("path")
-				.data(labels)
-				.join("path")
-				.attr("d", d => ("M " + (margin.left + d.start / total * width + (d.number / total * width) / 2) + " " + (height - barHeight / 2) + "L " + (d.labelX + labelLength / 2) + " " + (17)))
-				.attr("stroke", "black");
-		}
+			var groups = [];
+			var aux = [];
+			for(var i = 0; i < data.length; i++) {
+				if(data[i].number / total * width >= 50) {
+					if(aux.length > 0) {
+						groups.push(aux);
+						aux = [];
+					}
+				} else {
+					if(data[i].number != 0){
+						aux.push(data[i]);
+					}
+				}
+			}
+			if(aux.length > 0) {
+				groups.push(aux);
+			}
+			if(groups.length > 0) {
+				var labelLength = 45;
+				var group = [];
+				var groupLength = 0;
+				var center = 0, start = 0;
+				var labels = [];
+				for(var i = 0; i < groups.length; i++) {
+					group = groups[i];
+					groupLength = labelLength * group.length;
+					center = margin.left + (group[0].start / total * width + (group[group.length-1].start / total * width + (group[group.length-1].number / total * width))) / 2;
+					start = center - groupLength / 2;
+					for(var j = 0; j < group.length; j++) {
+						group[j].labelX = start + j * labelLength;
+						labels.push(group[j]);
+					}
+				}
+				var offset;
+				group = groups[0];
+				if(group[0].labelX < 0) {
+					offset = group[0].labelX;
+					for(var i = 0; i < group.length; i++) {
+						group[i].labelX = group[i].labelX - offset;
+					}
+				}
+				var leftGroupEnd;
+				for(var i = 1; i < groups.length; i++) {
+					group = groups[i];
+					leftGroupEnd = groups[i - 1][0].labelX + labelLength * groups[i - 1].length;
+					if(group[0].labelX < leftGroupEnd) {
+						offset = leftGroupEnd - group[0].labelX;
+						for(var j = 0; j < group.length; j++) {
+							group[j].labelX = group[j].labelX + offset;
+						}
+					}
+				}
+				group = groups[groups.length - 1];
+				if(group[0].labelX + labelLength * group.length > width + margin.right + margin.left) {
+					offset = group[0].labelX + labelLength * group.length - (width + margin.right + margin.left);
+					for(var i = 0; i < group.length; i++) {
+						group[i].labelX = group[i].labelX - offset;
+					}
+				}
+				var rightGroupStart;
+				for(var i = groups.length - 2; i >= 0; i--) {
+					group = groups[i];
+					rightGroupStart = groups[i + 1][0].labelX;
+					if(group[0].labelX + group.length * labelLength > rightGroupStart) {
+						offset = group[0].labelX + group.length * labelLength - rightGroupStart;
+						for(var j = 0; j < group.length; j++) {
+							group[j].labelX = group[j].labelX - offset;
+						}
+					}
+				}
+				
+				svg.append("g")
+					.selectAll("text")
+					.data(labels)
+					.join("text")
+					.attr("x", d => d.labelX)
+					.attr("y", 15)
+					.text(d => (parseFloat((d.number / total * 100).toFixed(1))+"%"));
+				
+				svg.append("g")
+					.selectAll("path")
+					.data(labels)
+					.join("path")
+					.attr("d", d => ("M " + (margin.left + d.start / total * width + (d.number / total * width) / 2) + " " + (height - barHeight / 2) + "L " + (d.labelX + labelLength / 2) + " " + (17)))
+					.attr("stroke", "black");
+			}
+		});
 	}
 	
 	function plotHistogramNum(svg, data, width, height) {
-		var lWidth = 60;
-		var lHeight = 30;
-		var cWidth = width - lWidth;
-		var cHeight = height - lHeight;
-		svg.attr("width", width)
-			.attr("height", height);
-		var bWidth = cWidth / data.length;
-		var yMax = data.reduce(function(a, b){if (a.length > b.length){return a;}return b;}).length;
-		
-		svg.append("g")
-			.selectAll("rect")
-			.data(data)
-			.join("rect")
-			.attr("height", d => (d.length / yMax * cHeight))
-			.attr("width", bWidth + 1)
-			.attr("x", (d, i) => lWidth + i * bWidth)
-			.attr("y", d => (cHeight - (d.length / yMax * cHeight)))
-			.attr("fill", "rgb(66, 136, 181)");
-		
-		var x = d3.scaleLinear().range([lWidth, width - 1]);
-		var y = d3.scaleLinear().range([cHeight, 0]);
-		x.domain([data[0].x0, data[data.length - 1].x1]);
-		y.domain([0, d3.max(data, function(d) { return d.length; })]);
-		
-		var xAxis = d3.axisBottom(x).ticks(6);
-		var xTicks = x.ticks();
-		if(xTicks[0] < -1000000 || xTicks[xTicks.length - 1] >= 1000000 || xTicks[0] + 0.001 > xTicks[xTicks.length - 1]) {
-			xAxis.tickFormat(d3.format(".1e"));
-		}
-		svg.append("g")
-			.attr("transform", "translate(0," + cHeight + ")")
-			.call(xAxis);
+		require(['d3'], function(d3){
+			var lWidth = 60;
+			var lHeight = 30;
+			var cWidth = width - lWidth;
+			var cHeight = height - lHeight;
+			svg.attr("width", width)
+				.attr("height", height);
+			var bWidth = cWidth / data.length;
+			var yMax = data.reduce(function(a, b){if (a.length > b.length){return a;}return b;}).length;
+			
+			svg.append("g")
+				.selectAll("rect")
+				.data(data)
+				.join("rect")
+				.attr("height", d => (d.length / yMax * cHeight))
+				.attr("width", bWidth + 1)
+				.attr("x", (d, i) => lWidth + i * bWidth)
+				.attr("y", d => (cHeight - (d.length / yMax * cHeight)))
+				.attr("fill", "rgb(66, 136, 181)");
+			
+			var x = d3.scaleLinear().range([lWidth, width - 1]);
+			var y = d3.scaleLinear().range([cHeight, 0]);
+			x.domain([data[0].x0, data[data.length - 1].x1]);
+			y.domain([0, d3.max(data, function(d) { return d.length; })]);
+			
+			var xAxis = d3.axisBottom(x).ticks(6);
+			var xTicks = x.ticks();
+			if(xTicks[0] < -1000000 || xTicks[xTicks.length - 1] >= 1000000 || xTicks[0] + 0.001 > xTicks[xTicks.length - 1]) {
+				xAxis.tickFormat(d3.format(".1e"));
+			}
+			svg.append("g")
+				.attr("transform", "translate(0," + cHeight + ")")
+				.call(xAxis);
 
-		svg.append("text")             
-			.attr("transform", "translate(" + (lWidth+cWidth/2) + " ," + (cHeight + lHeight) + ")")
-			.style("text-anchor", "middle")
-			.style("font-size", "12px")
-			.text("Value");
+			svg.append("text")             
+				.attr("transform", "translate(" + (lWidth+cWidth/2) + " ," + (cHeight + lHeight) + ")")
+				.style("text-anchor", "middle")
+				.style("font-size", "12px")
+				.text("Value");
 
-		var yAxis = d3.axisLeft(y);
-		var yTicks = y.ticks();
-		if(yTicks[yTicks.length - 1] >= 10000) {
-			yAxis.tickFormat(d3.format(".1e"));
-		}
-		svg.append("g")
-			.attr("transform", "translate("+lWidth+", 0)")
-			.call(yAxis);
-		
-		svg.append("text")
-			.attr("transform", "rotate(-90)")
-			.attr("y", 0)
-			.attr("x", 0 - cHeight / 2)
-			.attr("dy", "1em")
-			.style("text-anchor", "middle")
-			.style("font-size", "12px")
-			.text("Frequency");
-		svg.selectAll(".tick").filter(function(d){return (d3.select(this).attr("transform").match(/[0-9]+/g)[0] > width - 18) || (d3.select(this).attr("transform").match(/[0-9]+/g)[0] == 0 && d3.select(this).attr("transform").match(/[0-9]+/g)[1] < 5);}).attr("transform", "translate(-1000,-1000)");
+			var yAxis = d3.axisLeft(y);
+			var yTicks = y.ticks();
+			if(yTicks[yTicks.length - 1] >= 10000) {
+				yAxis.tickFormat(d3.format(".1e"));
+			}
+			svg.append("g")
+				.attr("transform", "translate("+lWidth+", 0)")
+				.call(yAxis);
+			
+			svg.append("text")
+				.attr("transform", "rotate(-90)")
+				.attr("y", 0)
+				.attr("x", 0 - cHeight / 2)
+				.attr("dy", "1em")
+				.style("text-anchor", "middle")
+				.style("font-size", "12px")
+				.text("Frequency");
+			svg.selectAll(".tick").filter(function(d){return (d3.select(this).attr("transform").match(/[0-9]+/g)[0] > width - 18) || (d3.select(this).attr("transform").match(/[0-9]+/g)[0] == 0 && d3.select(this).attr("transform").match(/[0-9]+/g)[1] < 5);}).attr("transform", "translate(-1000,-1000)");
+		});
 	}
 	
 	function plotHistogramDate(svg, data, width, height) {
-		var lWidth = 60;
-		var lHeight = 30;
-		var cWidth = width - lWidth;
-		var cHeight = height - lHeight;
-		svg.attr("width", width)
-			.attr("height", height);
-		var bWidth = cWidth / data.length;
-		var yMax = data.reduce(function(a, b){if (a.length > b.length){return a;}return b;}).length;
-		
-		svg.append("g")
-			.selectAll("rect")
-			.data(data)
-			.join("rect")
-			.attr("height", d => (d.length / yMax * cHeight))
-			.attr("width", bWidth + 1)
-			.attr("x", (d, i) => lWidth + i * bWidth)
-			.attr("y", d => (cHeight - (d.length / yMax * cHeight)))
-			.attr("fill", "rgb(66, 136, 181)");
-		
-		var x = d3.scaleTime().range([lWidth, width - 1]);
-		var y = d3.scaleLinear().range([cHeight, 0]);
-		x.domain([data[0].x0, data[data.length - 1].x1]);
-		y.domain([0, d3.max(data, function(d) { return d.length; })]);
-		
-		svg.append("g")
-			.attr("transform", "translate(0," + cHeight + ")")
-			.call(d3.axisBottom(x).ticks(6));
+		require(['d3'], function(d3){
+			var lWidth = 60;
+			var lHeight = 30;
+			var cWidth = width - lWidth;
+			var cHeight = height - lHeight;
+			svg.attr("width", width)
+				.attr("height", height);
+			var bWidth = cWidth / data.length;
+			var yMax = data.reduce(function(a, b){if (a.length > b.length){return a;}return b;}).length;
+			
+			svg.append("g")
+				.selectAll("rect")
+				.data(data)
+				.join("rect")
+				.attr("height", d => (d.length / yMax * cHeight))
+				.attr("width", bWidth + 1)
+				.attr("x", (d, i) => lWidth + i * bWidth)
+				.attr("y", d => (cHeight - (d.length / yMax * cHeight)))
+				.attr("fill", "rgb(66, 136, 181)");
+			
+			var x = d3.scaleTime().range([lWidth, width - 1]);
+			var y = d3.scaleLinear().range([cHeight, 0]);
+			x.domain([data[0].x0, data[data.length - 1].x1]);
+			y.domain([0, d3.max(data, function(d) { return d.length; })]);
+			
+			svg.append("g")
+				.attr("transform", "translate(0," + cHeight + ")")
+				.call(d3.axisBottom(x).ticks(6));
 
-		svg.append("text")             
-			.attr("transform", "translate(" + (lWidth+cWidth/2) + " ," + (cHeight + lHeight) + ")")
-			.style("text-anchor", "middle")
-			.style("font-size", "12px")
-			.text("Value");
+			svg.append("text")             
+				.attr("transform", "translate(" + (lWidth+cWidth/2) + " ," + (cHeight + lHeight) + ")")
+				.style("text-anchor", "middle")
+				.style("font-size", "12px")
+				.text("Value");
 
-		var yAxis = d3.axisLeft(y);
-		var yTicks = y.ticks();
-		if(yTicks[yTicks.length - 1] >= 10000) {
-			yAxis.tickFormat(d3.format(".1e"));
-		}
-		svg.append("g")
-			.attr("transform", "translate("+lWidth+", 0)")
-			.call(yAxis);
+			var yAxis = d3.axisLeft(y);
+			var yTicks = y.ticks();
+			if(yTicks[yTicks.length - 1] >= 10000) {
+				yAxis.tickFormat(d3.format(".1e"));
+			}
+			svg.append("g")
+				.attr("transform", "translate("+lWidth+", 0)")
+				.call(yAxis);
 
-		svg.append("text")
-			.attr("transform", "rotate(-90)")
-			.attr("y", 0)
-			.attr("x", 0 - cHeight / 2)
-			.attr("dy", "1em")
-			.style("text-anchor", "middle")
-			.style("font-size", "12px")
-			.text("Frequency");
-		svg.selectAll(".tick").filter(function(d){return (d3.select(this).attr("transform").match(/[0-9]+/g)[0] > width - 18) || (d3.select(this).attr("transform").match(/[0-9]+/g)[0] == 0 && d3.select(this).attr("transform").match(/[0-9]+/g)[1] < 5);}).attr("transform", "translate(-1000,-1000)");
+			svg.append("text")
+				.attr("transform", "rotate(-90)")
+				.attr("y", 0)
+				.attr("x", 0 - cHeight / 2)
+				.attr("dy", "1em")
+				.style("text-anchor", "middle")
+				.style("font-size", "12px")
+				.text("Frequency");
+			svg.selectAll(".tick").filter(function(d){return (d3.select(this).attr("transform").match(/[0-9]+/g)[0] > width - 18) || (d3.select(this).attr("transform").match(/[0-9]+/g)[0] == 0 && d3.select(this).attr("transform").match(/[0-9]+/g)[1] < 5);}).attr("transform", "translate(-1000,-1000)");
+		});
 	}
 	
 	function plotMissingValuesBar(svg, missing_str, width, height) {
-		var bHeight = height / 2;
-		var missing = parseFloat(parseFloat(missing_str.substring(0, missing_str.length - 1)).toFixed(1));
-		var valid = parseFloat((100 - missing).toFixed(1));
-		var validBarWidth = valid * (width / 100);
-		var missingBarWidth = width - validBarWidth;
-		svg.attr("width", width)
-			.attr("height", height);
-		svg.append("rect")
-			.attr("x", "0")
-			.attr("y", "0")
-			.attr("width", validBarWidth)
-			.attr("height", bHeight)
-			.attr("fill", "rgb(126, 201, 166)");
-		svg.append("rect")
-			.attr("x", validBarWidth)
-			.attr("y", "0")
-			.attr("width", missingBarWidth)
-			.attr("height", bHeight)
-			.attr("fill", "rgb(209, 60, 75)");
-		
-		if(height < 45) {
-			var fontSize = "12px";
-		} else {
-			var fontSize = "14px";
-		}
-		svg.append("text")
-			.text(valid+"%")
-			.attr("font-size", fontSize)
-			.attr("x", "5")
-			.attr("y", bHeight - 5)
-			.attr("fill", "black");
-		svg.append("text")
-			.text("Valid")
-			.attr("font-size", fontSize)
-			.attr("x", "5")
-			.attr("y", height - 5)
-			.attr("fill", "rgb(126, 201, 166)");
-		svg.append("text")
-			.text(missing+"%")
-			.attr("font-size", fontSize)
-			.attr("x", function() {return width - 5 - this.getComputedTextLength();})
-			.attr("y", bHeight - 5)
-			.attr("fill", "black");
-		svg.append("text")
-			.text("Missing")
-			.attr("font-size", fontSize)
-			.attr("x", function() {return width - 5 - this.getComputedTextLength();})
-			.attr("y", height - 5)
-			.attr("fill", "rgb(209, 60, 75)");
+		require(['d3'], function(d3){
+			var bHeight = height / 2;
+			var missing = parseFloat(parseFloat(missing_str.substring(0, missing_str.length - 1)).toFixed(1));
+			var valid = parseFloat((100 - missing).toFixed(1));
+			var validBarWidth = valid * (width / 100);
+			var missingBarWidth = width - validBarWidth;
+			svg.attr("width", width)
+				.attr("height", height);
+			svg.append("rect")
+				.attr("x", "0")
+				.attr("y", "0")
+				.attr("width", validBarWidth)
+				.attr("height", bHeight)
+				.attr("fill", "rgb(126, 201, 166)");
+			svg.append("rect")
+				.attr("x", validBarWidth)
+				.attr("y", "0")
+				.attr("width", missingBarWidth)
+				.attr("height", bHeight)
+				.attr("fill", "rgb(209, 60, 75)");
 			
-		var borderRadius = bHeight * 3 / 20
-		svg.append("path")
-			.attr("d", "M 0 0 L 0 "+borderRadius+" S 0 0 "+borderRadius+" 0 Z")
-			.attr("fill", "white");
-		svg.append("path")
-			.attr("d", "M 0 "+bHeight+" L 0 "+(bHeight - borderRadius)+" S 0 "+bHeight+" "+borderRadius+" "+bHeight+" Z")
-			.attr("fill", "white");
-		svg.append("path")
-			.attr("d", "M "+width+" 0 L "+width+" "+borderRadius+" S "+width+" 0 "+(width - borderRadius)+" 0 Z")
-			.attr("fill", "white");
-		svg.append("path")
-			.attr("d", "M "+width+" "+bHeight+" L "+width+" "+(bHeight - borderRadius)+" S "+width+" "+bHeight+" "+(width - borderRadius)+" "+bHeight+" Z")
-			.attr("fill", "white");
+			if(height < 45) {
+				var fontSize = "12px";
+			} else {
+				var fontSize = "14px";
+			}
+			svg.append("text")
+				.text(valid+"%")
+				.attr("font-size", fontSize)
+				.attr("x", "5")
+				.attr("y", bHeight - 5)
+				.attr("fill", "black");
+			svg.append("text")
+				.text("Valid")
+				.attr("font-size", fontSize)
+				.attr("x", "5")
+				.attr("y", height - 5)
+				.attr("fill", "rgb(126, 201, 166)");
+			svg.append("text")
+				.text(missing+"%")
+				.attr("font-size", fontSize)
+				.attr("x", function() {return width - 5 - this.getComputedTextLength();})
+				.attr("y", bHeight - 5)
+				.attr("fill", "black");
+			svg.append("text")
+				.text("Missing")
+				.attr("font-size", fontSize)
+				.attr("x", function() {return width - 5 - this.getComputedTextLength();})
+				.attr("y", height - 5)
+				.attr("fill", "rgb(209, 60, 75)");
+				
+			var borderRadius = bHeight * 3 / 20
+			svg.append("path")
+				.attr("d", "M 0 0 L 0 "+borderRadius+" S 0 0 "+borderRadius+" 0 Z")
+				.attr("fill", "white");
+			svg.append("path")
+				.attr("d", "M 0 "+bHeight+" L 0 "+(bHeight - borderRadius)+" S 0 "+bHeight+" "+borderRadius+" "+bHeight+" Z")
+				.attr("fill", "white");
+			svg.append("path")
+				.attr("d", "M "+width+" 0 L "+width+" "+borderRadius+" S "+width+" 0 "+(width - borderRadius)+" 0 Z")
+				.attr("fill", "white");
+			svg.append("path")
+				.attr("d", "M "+width+" "+bHeight+" L "+width+" "+(bHeight - borderRadius)+" S "+width+" "+bHeight+" "+(width - borderRadius)+" "+bHeight+" Z")
+				.attr("fill", "white");
+		});
 	}
 	
 	function plotBox(svg, data) {
-		var marginTop = 20;
-		var marginBottom = 20;
-		var height = 300;
-		var width = 300;
-		svg.attr("width", width)
-			.attr("height", height + marginTop + marginBottom);
-		data.sort((a, b) => a - b);
-		var q1 = d3.quantile(data, 0.25);
-		var q2 = d3.quantile(data, 0.5);
-		var q3 = d3.quantile(data, 0.75);
-		var min = data[0];
-		var max = data[data.length - 1];
-		
-		var y = d3.scaleLinear()
-			.domain([min, max])
-			.range([height + marginTop, marginTop]);
-		var yAxis = d3.axisLeft(y);
-		var yTicks = y.ticks();
-		if(yTicks[yTicks.length - 1] >= 1000000) {
-			yAxis.tickFormat(d3.format(".1e"));
-		}
-		svg.append("g")
-			.attr("transform", "translate(50,0)")
-			.call(yAxis);
-		
-		svg.append("line")
-			.attr("stroke", "black")
-			.attr("x1", width / 2)
-			.attr("x2", width / 2)
-			.attr("y1", y(min))
-			.attr("y2", y(max))
-			.attr("stroke-width", 1.5);
-		svg.append("line")
-			.attr("stroke", "black")
-			.attr("x1", width / 2 - 50)
-			.attr("x2", width / 2 + 50)
-			.attr("y1", y(min))
-			.attr("y2", y(min))
-			.attr("stroke-width", 1.5);
-		svg.append("rect")
-			.attr("x", width / 2 - 50)
-			.attr("y", y(q3))
-			.attr("height", y(q1) - y(q3))
-			.attr("width", 100)
-			.attr("fill","rgb(66, 136, 181)")
-			.attr("stroke", "black")
-			.attr("stroke-width", 1.5);
-		svg.append("line")
-			.attr("stroke", "black")
-			.attr("x1", width / 2 - 50)
-			.attr("x2", width / 2 + 50)
-			.attr("y1", y(q2))
-			.attr("y2", y(q2))
-			.attr("stroke-width", 1.5);
-		svg.append("line")
-			.attr("stroke", "black")
-			.attr("x1", width / 2 - 50)
-			.attr("x2", width / 2 + 50)
-			.attr("y1", y(max))
-			.attr("y2", y(max))
-			.attr("stroke-width", 1.5);
+		require(['d3'], function(d3){
+			var marginTop = 20;
+			var marginBottom = 20;
+			var height = 300;
+			var width = 300;
+			svg.attr("width", width)
+				.attr("height", height + marginTop + marginBottom);
+			data.sort((a, b) => a - b);
+			var q1 = d3.quantile(data, 0.25);
+			var q2 = d3.quantile(data, 0.5);
+			var q3 = d3.quantile(data, 0.75);
+			var min = data[0];
+			var max = data[data.length - 1];
+			
+			var y = d3.scaleLinear()
+				.domain([min, max])
+				.range([height + marginTop, marginTop]);
+			var yAxis = d3.axisLeft(y);
+			var yTicks = y.ticks();
+			if(yTicks[yTicks.length - 1] >= 1000000) {
+				yAxis.tickFormat(d3.format(".1e"));
+			}
+			svg.append("g")
+				.attr("transform", "translate(50,0)")
+				.call(yAxis);
+			
+			svg.append("line")
+				.attr("stroke", "black")
+				.attr("x1", width / 2)
+				.attr("x2", width / 2)
+				.attr("y1", y(min))
+				.attr("y2", y(max))
+				.attr("stroke-width", 1.5);
+			svg.append("line")
+				.attr("stroke", "black")
+				.attr("x1", width / 2 - 50)
+				.attr("x2", width / 2 + 50)
+				.attr("y1", y(min))
+				.attr("y2", y(min))
+				.attr("stroke-width", 1.5);
+			svg.append("rect")
+				.attr("x", width / 2 - 50)
+				.attr("y", y(q3))
+				.attr("height", y(q1) - y(q3))
+				.attr("width", 100)
+				.attr("fill","rgb(66, 136, 181)")
+				.attr("stroke", "black")
+				.attr("stroke-width", 1.5);
+			svg.append("line")
+				.attr("stroke", "black")
+				.attr("x1", width / 2 - 50)
+				.attr("x2", width / 2 + 50)
+				.attr("y1", y(q2))
+				.attr("y2", y(q2))
+				.attr("stroke-width", 1.5);
+			svg.append("line")
+				.attr("stroke", "black")
+				.attr("x1", width / 2 - 50)
+				.attr("x2", width / 2 + 50)
+				.attr("y1", y(max))
+				.attr("y2", y(max))
+				.attr("stroke-width", 1.5);
+		});
 	}
 </script>

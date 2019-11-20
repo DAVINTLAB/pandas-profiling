@@ -1,9 +1,11 @@
 <div class="row variablerow">
 	<script>
-		d3.select("#pearsonLink").attr("href", "#pearson"+id).attr("aria-controls", "pearson"+id).attr("id", "pearsonLink"+id);
-		d3.select("#spearmanLink").attr("href", "#spearman"+id).attr("aria-controls", "spearman"+id).attr("id", "spearmanLink"+id);
-		d3.select("#pearson").attr("id", "pearson"+id);
-		d3.select("#spearman").attr("id", "spearman"+id);
+		require(['d3'], function(d3){
+			d3.select("#pearsonLink").attr("href", "#pearson"+id).attr("aria-controls", "pearson"+id).attr("id", "pearsonLink"+id);
+			d3.select("#spearmanLink").attr("href", "#spearman"+id).attr("aria-controls", "spearman"+id).attr("id", "spearmanLink"+id);
+			d3.select("#pearson").attr("id", "pearson"+id);
+			d3.select("#spearman").attr("id", "spearman"+id);
+		});
 	</script>
 	<ul class="nav nav-tabs" role="tablist">
 		<li role="presentation" class="active"><a id="pearsonLink" href="#pearson"

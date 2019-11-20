@@ -2,8 +2,10 @@
 <div class="col-md-3">
 	<svg class="MissingValuesBar{{ values['varid'] }}">
 		<script>
+		require(['d3'], function(d3){
 			var svg = d3.select("svg.MissingValuesBar{{ values['varid'] }}");
-			plotMissingValuesBar(svg, "{{ values['p_missing'] }}", 143, 40)
+			plotMissingValuesBar(svg, "{{ values['p_missing'] }}", 143, 40);
+		});
 		</script>
 	</svg>
     <table class="stats ">
@@ -40,10 +42,12 @@
 <div class="col-md-6 collapse in" id="minihistogram{{ values['varid'] }}" style="text-align:right;">
 	<svg class="minihistogram{{ values['varid'] }}">
 		<script>
-			var data = {{ values['column_values'] }};
-			var bins = d3.histogram()(data);
-			var svg = d3.select("svg.minihistogram{{ values['varid'] }}");
-			plotHistogramNum(svg, bins, 400, 200);
+			require(['d3'], function(d3){
+				var data = {{ values['column_values'] }};
+				var bins = d3.histogram()(data);
+				var svg = d3.select("svg.minihistogram{{ values['varid'] }}");
+				plotHistogramNum(svg, bins, 400, 200);
+			});
 		</script>
 	</svg>
 </div>
@@ -52,7 +56,9 @@
         Show details
 		<button id="toggleDetails{{ values['varid'] }}" data-toggle="collapse" data-target="#descriptives{{ values['varid'] }},#minihistogram{{ values['varid'] }}" class="collapseButton btn btn-xs btn-secondary btn-hover-dark collapsed"></button>
 		<script>
-			d3.select("#toggleDetails{{ values['varid'] }}").on("click", function() {d3.select(this).classed("collapsed", d3.select(this).classed("collapsed") ? false : true);});
+			require(['d3'], function(d3){
+				d3.select("#toggleDetails{{ values['varid'] }}").on("click", function() {d3.select(this).classed("collapsed", d3.select(this).classed("collapsed") ? false : true);});
+			});
 		</script>
     </p>
 </div>
@@ -159,8 +165,12 @@
         <div role="tabpanel" class="tab-pane col-md-10 col-md-offset-1" id="histogram{{ values['varid'] }}" style="margin-top:20px;">
             <svg class="histogram{{ values['varid'] }}">
 				<script>
-					var svg = d3.select("svg.histogram{{ values['varid'] }}");
-					plotHistogramNum(svg, bins, 700, 350);
+					require(['d3'], function(d3){
+						var data = {{ values['column_values'] }};
+						var bins = d3.histogram()(data);
+						var svg = d3.select("svg.histogram{{ values['varid'] }}");
+						plotHistogramNum(svg, bins, 700, 350);
+					});
 				</script>
 			</svg>
         </div>
@@ -176,8 +186,11 @@
 		<div role="tabpanel" class="tab-pane col-md-12 text-center" id="boxplot{{ values['varid'] }}">
 			<svg class="boxplot{{ values['varid'] }}">
 				<script>
-					var svg = d3.select(".boxplot{{ values['varid'] }}");
-					plotBox(svg, data);
+					require(['d3'], function(d3){
+						var data = {{ values['column_values'] }};
+						var svg = d3.select(".boxplot{{ values['varid'] }}");
+						plotBox(svg, data);
+					});
 				</script>
 			</svg>
 		</div>

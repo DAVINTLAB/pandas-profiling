@@ -2,8 +2,10 @@
 <div class="col-md-3">
 	<svg class="MissingValuesBar{{ values['varid'] }}">
 		<script>
-			var svg = d3.select("svg.MissingValuesBar{{ values['varid'] }}");
-			plotMissingValuesBar(svg, "{{ values['p_missing'] }}", 143, 40)
+			require(['d3'], function(d3){
+				var svg = d3.select("svg.MissingValuesBar{{ values['varid'] }}");
+				plotMissingValuesBar(svg, "{{ values['p_missing'] }}", 143, 40);
+			});
 		</script>
 	</svg>
 </div>
@@ -12,7 +14,9 @@
         Show details
 		<button id="toggleDetails{{ values['varid'] }}" data-toggle="collapse" data-target="#values{{ values['varid'] }},#minivalues{{ values['varid'] }}" class="collapseButton btn btn-xs btn-secondary btn-hover-dark collapsed"></button>
 		<script>
-			d3.select("#toggleDetails{{ values['varid'] }}").on("click", function() {d3.select(this).classed("collapsed", d3.select(this).classed("collapsed") ? false : true);});
+			require(['d3'], function(d3){
+				d3.select("#toggleDetails{{ values['varid'] }}").on("click", function() {d3.select(this).classed("collapsed", d3.select(this).classed("collapsed") ? false : true);});
+			});
 		</script>
     </p>
 </div>

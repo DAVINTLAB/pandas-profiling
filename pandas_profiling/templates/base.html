@@ -261,6 +261,13 @@
 				width: 350px;
 			}
 </style>
+<script>
+	require.config({
+		paths: {
+			'd3': "https://d3js.org/d3.v5.min"
+		}
+	});
+</script>
 <div class="container pandas-profiling">
 	<script>
 		if (typeof id !== 'undefined') {
@@ -274,24 +281,26 @@
 		<h1 style="font-size: 36px;">Data Profiling</h1>
 	</div>
 	<script>
-		d3.select("#overviewLink").attr("href", "#overview"+id).attr("id", "overviewLink"+id);
-		d3.select("#variablesLink").attr("href", "#variables"+id).attr("id", "variablesLink"+id);
-		{% if values['missing'] %}
-			d3.select("#missingLink").attr("href", "#missing"+id).attr("id", "missingLink"+id);
-		{% endif %}
-		{% if values['correlations'] %}
-			d3.select("#correlationsLink").attr("href", "#correlations"+id).attr("id", "correlationsLink"+id);
-		{% endif %}
-		d3.select("#sampleLink").attr("href", "#sample"+id).attr("id", "sampleLink"+id);
-		d3.select("#overview").attr("id", "overview"+id);
-		d3.select("#variables").attr("id", "variables"+id);
-		{% if values['missing'] %}
-			d3.select("#missing").attr("id", "missing"+id);
-		{% endif %}
-		{% if values['correlations'] %}
-			d3.select("#correlations").attr("id", "correlations"+id);
-		{% endif %}
-		d3.select("#sample").attr("id", "sample"+id);
+		require(['d3'], function(d3){
+			d3.select("#overviewLink").attr("href", "#overview"+id).attr("id", "overviewLink"+id);
+			d3.select("#variablesLink").attr("href", "#variables"+id).attr("id", "variablesLink"+id);
+			{% if values['missing'] %}
+				d3.select("#missingLink").attr("href", "#missing"+id).attr("id", "missingLink"+id);
+			{% endif %}
+			{% if values['correlations'] %}
+				d3.select("#correlationsLink").attr("href", "#correlations"+id).attr("id", "correlationsLink"+id);
+			{% endif %}
+			d3.select("#sampleLink").attr("href", "#sample"+id).attr("id", "sampleLink"+id);
+			d3.select("#overview").attr("id", "overview"+id);
+			d3.select("#variables").attr("id", "variables"+id);
+			{% if values['missing'] %}
+				d3.select("#missing").attr("id", "missing"+id);
+			{% endif %}
+			{% if values['correlations'] %}
+				d3.select("#correlations").attr("id", "correlations"+id);
+			{% endif %}
+			d3.select("#sample").attr("id", "sample"+id);
+		});
 	</script>
 	<div class="row variablerow">
 		<p class="h4" style="font-weight: bold;">Contents</p>

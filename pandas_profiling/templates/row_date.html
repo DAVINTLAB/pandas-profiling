@@ -2,8 +2,10 @@
 <div class="col-md-3">
 	<svg class="MissingValuesBar{{ values['varid'] }}">
 		<script>
-			var svg = d3.select("svg.MissingValuesBar{{ values['varid'] }}");
-			plotMissingValuesBar(svg, "{{ values['p_missing'] }}", 143, 40)
+			require(['d3'], function(d3){
+				var svg = d3.select("svg.MissingValuesBar{{ values['varid'] }}");
+				plotMissingValuesBar(svg, "{{ values['p_missing'] }}", 143, 40);
+			});
 		</script>
 	</svg>
     <table class="stats ">
@@ -44,9 +46,11 @@
 <div class="col-md-6 collapse in" id="minihistogram{{ values['varid'] }}" style="text-align:right;">
 	<svg class="minihistogram{{ values['varid'] }}">
 		<script>
-			var data = d3.histogram()({{ values['column_values'] }}.map(function(s){return new Date(s * 1000)}));
-			var svg = d3.select("svg.minihistogram{{ values['varid'] }}");
-			plotHistogramDate(svg, data, 400, 200);
+			require(['d3'], function(d3){
+				var data = d3.histogram()({{ values['column_values'] }}.map(function(s){return new Date(s * 1000)}));
+				var svg = d3.select("svg.minihistogram{{ values['varid'] }}");
+				plotHistogramDate(svg, data, 400, 200);
+			});
 		</script>
 	</svg>
 </div>
@@ -55,15 +59,20 @@
         Show details
 		<button id="toggleDetails{{ values['varid'] }}" data-toggle="collapse" data-target="#descriptives{{ values['varid'] }},#minihistogram{{ values['varid'] }}" class="collapseButton btn btn-xs btn-secondary btn-hover-dark collapsed"></button>
 		<script>
-			d3.select("#toggleDetails{{ values['varid'] }}").on("click", function() {d3.select(this).classed("collapsed", d3.select(this).classed("collapsed") ? false : true);});
+			require(['d3'], function(d3){
+				d3.select("#toggleDetails{{ values['varid'] }}").on("click", function() {d3.select(this).classed("collapsed", d3.select(this).classed("collapsed") ? false : true);});
+			});
 		</script>
     </p>
 </div>
 <div class="tab-pane col-md-10 col-md-offset-1 collapse" id="descriptives{{ values['varid'] }}" style="margin-top:20px">
     <svg class="histogram{{ values['varid'] }}">
 		<script>
-			var svg = d3.select("svg.histogram{{ values['varid'] }}");
-			plotHistogramDate(svg, data, 700, 350);
+			require(['d3'], function(d3){
+				var data = d3.histogram()({{ values['column_values'] }}.map(function(s){return new Date(s * 1000)}));
+				var svg = d3.select("svg.histogram{{ values['varid'] }}");
+				plotHistogramDate(svg, data, 700, 350);
+			});
 		</script>
     </svg>
 </div>
