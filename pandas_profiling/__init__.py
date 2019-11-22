@@ -173,6 +173,13 @@ class ProfileReport(object):
         str
             The HTML internal representation.
         """
+        
+        class Importer:
+            def __init__(self):
+                self.html = templates.template('importer').render()
+            def _repr_html_(self):
+                return self.html
+        display(Importer())
         return self.html
 
     def __str__(self):

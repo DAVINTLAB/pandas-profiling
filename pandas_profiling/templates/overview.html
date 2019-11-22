@@ -34,7 +34,25 @@
 	<div class="col-md-5">
 		<svg class="VariableTypesChart" style="transform:translate(-20px,0);">
 			<script>
-				require(['d3'], function(d3){
+				var data = [
+					{name: "Numeric", number: {{ values['NUM'] }}}, 
+					{name: "Categorical", number: {{ values['CAT'] }}}, 
+					{name: "Boolean", number: {{ values['BOOL'] }}}, 
+					{name: "Date", number: {{ values['DATE'] }}}, 
+					{name: "Text (Unique)", number: {{ values['UNIQUE'] }}}, 
+					{name: "Rejected", number: {{ values['REJECTED'] }}}, 
+					{name: "Unsupported", number: {{ values['UNSUPPORTED'] }}}
+				];
+				var svg = d3.select("svg.VariableTypesChart");
+				svg.attr("class", "VariableTypesChart"+id);
+				plotVaribleTypesChart(svg, data);
+			</script>
+		</svg>
+	</div>
+	<div class="col-md-4">
+		<table class="stats">
+			<tbody class="variableTypesTable">
+				<script>
 					var data = [
 						{name: "Numeric", number: {{ values['NUM'] }}}, 
 						{name: "Categorical", number: {{ values['CAT'] }}}, 
@@ -44,50 +62,28 @@
 						{name: "Rejected", number: {{ values['REJECTED'] }}}, 
 						{name: "Unsupported", number: {{ values['UNSUPPORTED'] }}}
 					];
-					var svg = d3.select("svg.VariableTypesChart");
-					svg.attr("class", "VariableTypesChart"+id);
-					plotVaribleTypesChart(svg, data);
-				});
-			</script>
-		</svg>
-	</div>
-	<div class="col-md-4">
-		<table class="stats">
-			<tbody class="variableTypesTable">
-				<script>
-					require(['d3'], function(d3){
-						var data = [
-							{name: "Numeric", number: {{ values['NUM'] }}}, 
-							{name: "Categorical", number: {{ values['CAT'] }}}, 
-							{name: "Boolean", number: {{ values['BOOL'] }}}, 
-							{name: "Date", number: {{ values['DATE'] }}}, 
-							{name: "Text (Unique)", number: {{ values['UNIQUE'] }}}, 
-							{name: "Rejected", number: {{ values['REJECTED'] }}}, 
-							{name: "Unsupported", number: {{ values['UNSUPPORTED'] }}}
-						];
-						var table = d3.select("tbody.variableTypesTable");
-						table.attr("class", "variableTypesTable"+id);
-						var color = d3.scaleOrdinal()
-							.domain(data.map(d => d.name))
-							.range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), data.length).reverse());
-						var join = table.selectAll("tr")
-							.data(data)
-							.join("tr");
-						join.append("svg")
-							.attr("width", 13)
-							.attr("height", 13)
-							.append("circle")
-							.attr("cy", 6.5)
-							.attr("cx", 6.5)
-							.attr("r", 6)
-							.attr("stroke", "black")
-							.attr("stroke-width", 0.5)
-							.attr("fill", d => color(d.name));
-						join.append("th")
-							.text(d => d.name);
-						join.append("td")
-							.text(d => d.number);
-					});
+					var table = d3.select("tbody.variableTypesTable");
+					table.attr("class", "variableTypesTable"+id);
+					var color = d3.scaleOrdinal()
+						.domain(data.map(d => d.name))
+						.range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), data.length).reverse());
+					var join = table.selectAll("tr")
+						.data(data)
+						.join("tr");
+					join.append("svg")
+						.attr("width", 13)
+						.attr("height", 13)
+						.append("circle")
+						.attr("cy", 6.5)
+						.attr("cx", 6.5)
+						.attr("r", 6)
+						.attr("stroke", "black")
+						.attr("stroke-width", 0.5)
+						.attr("fill", d => color(d.name));
+					join.append("th")
+						.text(d => d.name);
+					join.append("td")
+						.text(d => d.number);
 				</script>
 			</tbody>
 		</table>
@@ -100,11 +96,9 @@
 	<div class="col-md-5">
         <svg class="MissingValuesBigBar" style="margin-top:35px;">
 			<script>
-				require(['d3'], function(d3){
-					var svg = d3.select("svg.MissingValuesBigBar");
-					svg.attr("class", "MissingValuesBigBar"+id);
-					plotMissingValuesBar(svg, "{{ values['total_missing'] }}", 350, 50);
-				});
+				var svg = d3.select("svg.MissingValuesBigBar");
+				svg.attr("class", "MissingValuesBigBar"+id);
+				plotMissingValuesBar(svg, "{{ values['total_missing'] }}", 350, 50);
 			</script>
 		</svg>
     </div>
@@ -139,10 +133,8 @@
 </div>
 <div class="row variablerow">
 	<script>
-		require(['d3'], function(d3){
-			d3.select("#warningsToggle").attr("data-target", "#warnings"+id).attr("id", "warningsToggle"+id);
-			d3.select("#warnings").attr("id", "warnings"+id);
-		});
+		d3.select("#warningsToggle").attr("data-target", "#warnings"+id).attr("id", "warningsToggle"+id);
+		d3.select("#warnings").attr("id", "warnings"+id);
 	</script>
     <div class="col-md-6">
 		<div class="panel-heading" style="padding:0">
@@ -151,10 +143,8 @@
 		<ul id="warnings" class="pannel-collapse list-unstyled collapse">{{ messages }} </ul>
     </div>
 	<script>
-		require(['d3'], function(d3){
-			d3.select("#recommendationsToggle").attr("data-target", "#recommendations"+id).attr("id", "recommendationsToggle"+id);
-			d3.select("#recommendations").attr("id", "recommendations"+id);
-		});
+		d3.select("#recommendationsToggle").attr("data-target", "#recommendations"+id).attr("id", "recommendationsToggle"+id);
+		d3.select("#recommendations").attr("id", "recommendations"+id);
 	</script>
     <div class="col-md-6">
         <div class="panel-heading" style="padding:0">
