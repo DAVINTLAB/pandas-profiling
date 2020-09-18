@@ -221,6 +221,12 @@ def to_html(sample, stats_object, missing_count):
     sample_html = templates.template('sample').render(sample_table_html=sample.to_html(classes="sample"))
     # TODO: should be done in the template
     
+    if(stats_object['bid']):
+        bid_html = templates.template('bid').render(keys = stats_object['bid'][0], data_array = stats_object['bid'][1])
+    
+    if(stats_object['table_viz']):
+        table_html = templates.template('table').render(metadata_table_viz = stats_object['table_viz'][0],dataarray_table_viz = stats_object['table_viz'][1])
+    
     missing = df.isnull().values.any()
     if(missing):
         values = {}
@@ -233,11 +239,15 @@ def to_html(sample, stats_object, missing_count):
     sections = {
         'overview_html': overview_html,
         'rows_html': rows_html,
-        'sample_html': sample_html,
+        'sample_html': sample_html
     }
     if(missing):
         sections['missing_html'] = missing_html
     if(correlations):
         sections['correlation_html'] = correlations_html
+    if(stats_object['bid']):
+        sections['bid_html'] = bid_html
+    if(stats_object['table_viz']):
+        sections['table_html'] = table_html
     
     return templates.template('base').render(sections, values = {'missing': missing, 'correlations': correlations})

@@ -1,10 +1,833 @@
 <script>
+	function plotTableGraph(metadata, data_array, svg, label_svg, compact_btn) {
+		let color_palette = []
+
+		let cell_width = 90
+		let cell_height = 3
+		let space_btw_columns = 5
+		let space_between_rows = cell_height + 1
+		let padding_top = 10
+		let width = cell_width * data_array[0].length
+		let min_int_bar_size = 2
+		let label_height = 20
+		let label_spacing = 2
+		let compacted = 0
+
+		const sort_up_icon = "\uf161"
+		const sort_down_icon = "\uf160"
+		const sort_icon = "\uf0b0"
+		const move_left_icon = "\uf0d9"
+		const move_right_icon = "\uf0da"
+		const missing_val_color = 'black'
+
+		function sort_numerical(col_n, asc) {
+			if (asc) {
+				data_array.sort(function (a, b) {
+					if (isNaN(a[col_n]))
+						return 1
+					if (isNaN(b[col_n]))
+						return -1
+					return a[col_n] - b[col_n]
+				});
+			} else {
+				data_array.sort(function (a, b) {
+					if (isNaN(a[col_n]))
+						return 1
+					if (isNaN(b[col_n]))
+						return -1
+
+					return b[col_n] - a[col_n]
+				});
+			}
+		}
+
+		function sort_alpha(col_n, asc) {
+			if (asc) {
+				data_array.sort(function (a, b) {
+
+					return a[col_n].localeCompare(b[col_n]);
+
+				})
+			} else {
+				data_array.sort(function (a, b) {
+					return b[col_n].localeCompare(a[col_n]);
+				})
+			}
+		}
+
+		function define_cell_width(min, max, val, full_wdth) {
+			const new_val = (val - min) / (max - min)
+			return new_val != 0 ? ((new_val * full_wdth) > min_int_bar_size ? (new_val * full_wdth) : min_int_bar_size) :
+				min_int_bar_size
+		}
+
+		function get_max_labels() {
+			let count = 2 // starts at 2 because at least two will be needed for int and float labels
+			Object.keys(metadata)
+				.filter(obj => metadata[obj]['datatype'] === 'string')
+				.forEach(obj =>
+					count = metadata[obj]['values'].length > count ? metadata[obj]['values'].length : count
+				)
+			return count
+		}
+
+		function column_name_click(svg, clicked_col, label_qtt) {
+			let obj = Object.keys(metadata)[clicked_col]
+
+			for (i = 0; i < metadata.length; i++) {
+				if (i != clicked_col) {
+					metadata[i]['ascend'] == 0
+				}
+			}
+
+
+			svg
+				.selectAll(".sorted_button")
+				.text(sort_icon)
+
+			if (metadata[clicked_col]['ascend'] == 0) {
+				metadata[clicked_col]['ascend'] = 1
+				svg
+					.selectAll(`.ascending-${clicked_col}`)
+					.text(sort_down_icon)
+			} else if (metadata[clicked_col]['ascend'] == 1) {
+				metadata[clicked_col]['ascend'] = 2
+				svg
+					.selectAll(`.ascending-${clicked_col}`)
+					.text(sort_up_icon)
+			} else if (metadata[clicked_col]['ascend'] == 2) {
+				metadata[clicked_col]['ascend'] = 1
+				svg
+					.selectAll(`.ascending-${clicked_col}`)
+					.text(sort_icon)
+			}
+
+			if (metadata[obj]['datatype'] === 'string') {
+				if (metadata[obj]['ascend'] == 1) {
+					sort_alpha(clicked_col, true)
+				}
+				if (metadata[obj]['ascend'] == 2) {
+					sort_alpha(clicked_col, false)
+				}
+
+			} else {
+				if (metadata[obj]['ascend'] == 1) {
+					sort_numerical(clicked_col, true)
+				}
+				if (metadata[obj]['ascend'] == 2) {
+					sort_numerical(clicked_col, false)
+				}
+			}
+
+			build_table(svg, label_qtt)
+		}
+
+		function move_to_left(svg, clicked_col) {
+
+			for (let i = 0; i < data_array.length; i++) {
+				const helper = data_array[i][clicked_col]
+				data_array[i][clicked_col] = data_array[i][clicked_col - 1]
+				data_array[i][clicked_col - 1] = helper
+			}
+
+			let new_data = Object.keys(metadata).map((val, index) => {
+				if (index === clicked_col - 1) {
+					return metadata[Object.keys(metadata)[clicked_col]]
+				} else if (index === clicked_col) {
+					return metadata[Object.keys(metadata)[clicked_col - 1]]
+				} else {
+					return metadata[val]
+				}
+			})
+			metadata = new_data;
+
+			head_build(svg);
+		}
+
+		function move_to_right(svg, clicked_col) {
+
+			for (let i = 0; i < data_array.length; i++) {
+				const helper = data_array[i][clicked_col]
+				data_array[i][clicked_col] = data_array[i][clicked_col + 1]
+				data_array[i][clicked_col + 1] = helper
+			}
+
+			let new_data = Object.keys(metadata).map((val, index) => {
+				if (index === clicked_col + 1) {
+					return metadata[Object.keys(metadata)[clicked_col]]
+				} else if (index === clicked_col) {
+					return metadata[Object.keys(metadata)[clicked_col + 1]]
+				} else {
+					return metadata[val]
+				}
+			})
+			metadata = new_data;
+
+			head_build(svg);
+		}
+
+		function colourIsLight(color) {
+
+			const r = d3.color(color).rgb().r
+			const g = d3.color(color).rgb().g
+			const b = d3.color(color).rgb().b
+			// Counting the perceptive luminance
+			// human eye favors green color... 
+			// See: http://stackoverflow.com/a/1855903/186965
+			let a = 1 - (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+			return (a < 0.5) ? 'black' : 'white';
+		}
+
+		function create_tooltip(text, jdx, this_row_y, work_row, color) {
+
+			work_row.append("rect")
+				.attr("x", `${jdx * cell_width + 15}`)
+				.attr("y", `${this_row_y - 20}`)
+				.attr("width", `${10 + 7 * `${text}`.length}`)
+				.attr("height", "18")
+				.attr("class", "back-tooltip")
+				.attr("fill", color)
+				.attr("stroke-width", 1)
+				.attr("stroke", `${d3.color(color).darker()}`)
+				.attr("rx", 5)
+				.attr("ry", 5)
+
+			work_row.append("text")
+				.text(`${text}`)
+				.attr("x", `${jdx * cell_width + 20}`)
+				.attr("y", `${this_row_y - 7}`)
+				.attr("class", "data-text")
+				.attr("End", "true")
+				.attr("fill",
+					`${colourIsLight(color)}`
+				)
+		}
+
+		function destroy_tooltip(svg) {
+			svg.selectAll(".data-text").remove()
+			svg.selectAll(".back-tooltip").remove()
+		}
+
+		function generate_colors(values) {
+
+		const quantity = (values.find(val => val === "missing value") != undefined) ? values.length - 1 : values.length
+		const divisor = quantity > 0 ? 360 / quantity : 1
+
+		let color_array = []
+		for (let i = 1; i <= quantity; i++) {
+			
+			if(values[i-1] !== "missing value" ) {
+			color_array.push(`hsl(${divisor * i}, 50%, 50%)`)
+			}
+			else
+			{
+				color_array.push('black')
+				color_array.push(`hsl(${divisor * i}, 50%, 50%)`)
+
+			}
+
+		}			
+
+		return color_array
+		}
+
+		function build_labels(label_svg, max_number_of_labels) {
+			label_svg.selectAll("*").remove()
+
+			let height = max_number_of_labels * label_height
+
+			label_svg
+				.append("svg")
+				.attr("class", "table_viz_style")
+				.attr("style", "overflow:unset;max-width:unset;width:unset;height:unset")
+				.attr("width", `${width}px`)
+				.attr("height", `${height}px`)
+				.append("g")
+				.attr("class", 'labels')
+
+			let labels = label_svg.selectAll(".labels").attr("font-size", "100%")
+
+
+			Object.keys(metadata).forEach(
+				(val, index) => {
+					let adding_labels = labels.append("g").attr("class", `labels-${index}`)
+
+					if (metadata[val]['datatype'] == 'string') {
+						let color_list = {}
+						count = 0
+						color_palette = generate_colors(metadata[val]['values'])
+						metadata[val]['values'].forEach((val2, index2) => {
+							color_list[val2] = color_palette[index2]
+							metadata[val]['colors'] = color_list
+							let label_item = adding_labels
+								.append("g")
+								.attr("class", "label")
+							label_item
+								.append("rect")
+								.attr("x", `${cell_width * index}`)
+								.attr("y", `${label_height * index2 + 5}`)
+								.attr("height", `${label_height - label_spacing}`)
+								.attr("rx", "1")
+								.attr("ry", "1")
+								.attr("width", `${cell_width - space_btw_columns}`)
+								.attr("fill",
+									`${val2 === "missing value" ? missing_val_color : color_list[val2]}`
+								)
+							label_item
+								.append("text")
+								.text(`${val2}`)
+								.attr("fill",
+									`${val2 === "missing value" ? colourIsLight(missing_val_color) : colourIsLight(color_list[val2])}`
+								)
+								.attr("x", `${cell_width * index}`)
+								.attr("y", `${label_height * index2 + label_height - 2}`)
+						})
+					} else {
+						var label_item = adding_labels
+							.append("g")
+							.attr("class", "label")
+						label_item
+							.append("text")
+							.text(`min : ${metadata[val]['min_val']}`)
+							.attr("fill", "black")
+							.attr("x", `${cell_width * index}`)
+							.attr("y", `${label_height * 0 + label_height - 2}`)
+						label_item
+							.append("text")
+							.text(`max : ${metadata[val]['max_val']}`)
+							.attr("fill", "black")
+							.attr("x", `${cell_width * index}`)
+							.attr("y", `${label_height * 1 + label_height - 2}`)
+					}
+
+				}
+			)
+		}
+
+		function head_build(svg) {
+
+			max_number_of_labels = get_max_labels()
+
+			// last label height is for buttons
+			let height = space_between_rows * data_array.length + space_between_rows * 2 + padding_top +
+				label_height
+
+			svg.selectAll("*").remove();
+
+			svg
+				.append("svg")
+				.attr("class", "table_viz_style")
+				.attr("style", "overflow:unset;max-width:unset;width:unset;height:unset")
+				.attr("width", `${width}px`)
+				.attr("height", `${height}px`)
+				.append("g")
+				.attr("class", "table")
+				.append("g")
+
+			build_labels(label_svg, max_number_of_labels)
+
+			let header = svg.selectAll(".table").append("g")
+				.attr("class", 'header')
+
+			Object.keys(metadata).forEach((obj, i) => {
+				let headers = header.append("g").attr("class", `header-${i}`)
+
+				buttons = headers.append("g").attr("class", `header-${i}-buttons`).attr("font-size", "18px")
+
+				if (i != Object.keys(metadata).length - 1) {
+					buttons.append("text").attr("font-family", "FontAwesome").text(move_right_icon)
+						.attr("x", `${cell_width * i + cell_width * 3 / 4 + space_btw_columns}`)
+						.attr("y", `${16}`)
+						.attr("class", `right_arrow-${i} btn_table_viz`)
+						.attr("style", "cursor:pointer")
+						.on("click", _ => move_to_right(svg, i))
+				}
+
+				if (i != 0) {
+					buttons.append("text").attr("font-family", "FontAwesome").text(move_left_icon)
+						.attr("x", `${cell_width * i + cell_width * 0 / 4}`)
+						.attr("y", `${16}`)
+						.attr("class", `left_arrow-${i} btn_table_viz`)
+						.attr("style", "cursor:pointer")
+						.on("click", _ => move_to_left(svg, i))
+				}
+
+				let image_construct = buttons.append("text").attr("height", "15")
+					.attr("width", "15")
+					.attr("x", `${cell_width * i + cell_width * 1.5 / 4}`)
+					.attr("y", `${16}`)
+					.attr("class", `ascending-${i} sorted_button btn_table_viz`)
+					.attr("style", "cursor:pointer")
+					.on("click", _ => column_name_click(svg, i, max_number_of_labels))
+					.attr("font-family", "FontAwesome")
+
+				if (metadata[i]['ascend'] == 0)
+					image_construct
+						.text(sort_icon)
+				else if (metadata[i]['ascend'] == 1) {
+					image_construct
+						.text(sort_up_icon)
+				} else if (metadata[i]['ascend'] == 2) {
+					image_construct
+						.text(sort_down_icon)
+				}
+
+				headers
+					.append("text")
+					.attr("x", `${cell_width * i}`)
+					.attr("y",
+						`${space_between_rows + padding_top + label_height}`)
+					.attr("fill", "black")
+					.text(compacted ? (metadata[obj]['name'].length >= 9 ? metadata[obj]['name'].substring(0, 8) : metadata[obj]['name']) : metadata[obj]['name'])
+					.attr("class", "header-item")
+
+				if (metadata[obj]['datatype'] === 'string') {
+					var color_list = {}
+					color_palette = generate_colors(metadata[obj]['values'])
+					metadata[obj]['values'].forEach((object, idx) => {
+						color_list[object] = color_palette[idx]
+					})
+					metadata[obj]['colors'] = color_list
+				}
+			})
+			build_table(svg, max_number_of_labels)
+		}
+
+		function build_table(svg, n_of_labels) {
+
+			svg.selectAll(".rows").remove();
+			let rows = svg.selectAll(".table").append("g").attr("class", "rows")
+			data_array.forEach(
+				(item, idx) => {
+
+
+					// last label height is for buttons
+					var this_row_y = space_between_rows * idx + space_between_rows + 5 + padding_top  + label_height
+					item.forEach(
+						(i, jdx) => {
+							let work_row = rows
+								.append("g")
+								.attr("class", `row-${idx}`)
+
+							let common = work_row
+								.append("rect")
+								.attr("x", `${jdx * cell_width}`)
+								.attr("y", `${this_row_y}`)
+								.attr("height", `${cell_height}`)
+								.attr("rx", "1").attr("ry", "1")
+								.on("mouseout", _ => destroy_tooltip(svg))
+
+							const {
+								min_val,
+								max_val,
+								datatype,
+								colors
+							} = metadata[jdx]
+
+							if (datatype == 'string') {
+								common
+									.attr("width", `${cell_width - space_btw_columns}`)
+									.attr("fill", i === "missing value" ? missing_val_color : colors[i])
+									.on("mouseover", _ => create_tooltip(i, jdx, this_row_y, work_row, i ===
+										"missing value" ? missing_val_color : colors[i]))
+
+							} else if (datatype == 'int' || datatype == 'float') {
+								const this_cell_wdth = define_cell_width(min_val, max_val, data_array[idx][jdx],
+									cell_width - space_btw_columns);
+								const lightning_percentage = 100 - (((this_cell_wdth / cell_width) * 60)) - 10
+								const variable_color = `hsl(203, ${64}%, ${lightning_percentage}%)`
+								common
+									.attr("width", data_array[idx][jdx] == "missing value" ? cell_width -
+										space_btw_columns : this_cell_wdth)
+									.attr("fill", data_array[idx][jdx] == "missing value" ? missing_val_color :
+										variable_color)
+									.on("mouseover", _ => create_tooltip(i, jdx, this_row_y, work_row, data_array[
+										idx][jdx] == "missing value" ? missing_val_color : variable_color))
+							}
+						}
+					)
+				}
+			)
+		}
+		
+		function compact_table() {
+			if(compacted === 0) {
+				compacted = 1
+				cell_width = 50
+				cell_height = 2
+				space_btw_columns = 2
+				space_between_rows = cell_height + 0
+			}
+			else {
+				compacted = 0
+				cell_width = 90
+				cell_height = 3
+				space_btw_columns = 5
+				space_between_rows = cell_height + 1
+			}
+			head_build(svg)
+		}
+		
+		compact_btn.on("click", _ => compact_table())
+		head_build(svg)
+
+	}
+
+	function plotBidGraph(data, full_matrix, sel_a, sel_b, btn_swap) {
+		let dimensions = Object.keys(data)
+		let labels = [];
+		let matrix = [];
+
+		const r_dim_color = "#black"
+		let l_dim_colors = []
+		const width = 800
+		const height = 800
+
+		const innerRadius = 260
+		const outerRadius = 275
+
+		const entity_padding = 0.05
+		let select_a = sel_a
+		let select_b = sel_b
+		let swap_btn = btn_swap
+		let hold_shown_values = false
+
+		function generate_colors(values) {
+
+			const quantity = (values.find(val => val === "missing value") != undefined) ? values.length - 1 : values.length
+			const divisor = quantity > 0 ? 360 / quantity : 1
+
+			let color_array = []
+			for (let i = 1; i <= quantity; i++) {
+				color_array.push(`hsl(${divisor * i}, 50%, 50%)`)
+			}
+
+			return color_array
+		}
+
+		function zeros(len1, len2) {
+			let arr = [];
+			for (let i = 0; i < len1; i++) {
+				arr.push(0);
+			}
+			let mat = []
+			if (len2 !== undefined) {
+				for (let i = 0; i < len2; i++) {
+					mat.push(arr);
+				}
+				return Array.from(mat);
+			}
+			return Array.from(arr);
+		}
+
+		function concat_matrix(f_mat, s_mat) {
+			let ret_mat = [];
+			for (i = 0; i < f_mat.length; i++) {
+				ret_mat.push(f_mat[i].concat(s_mat[i]));
+			}
+			return Array.from(ret_mat);
+		}
+
+		function join_matrix(f_mat, s_mat) {
+			let ret_mat = f_mat;
+
+			for (i = 0; i < s_mat.length; i++) {
+				ret_mat.push(s_mat[i])
+			}
+
+			return Array.from(ret_mat);
+		}
+
+		function node_mouseover(svg, d) {
+			if (!hold_shown_values) {
+				svg.selectAll('.nodes').classed('fade_bid_viz', true)
+				svg.selectAll(`.node-${d.index}`).classed('highlight_bid_viz', true)
+				svg.selectAll('.ribbons').classed('fade_bid_viz', true)
+
+
+				for (let i = 0; i < matrix.length; i++) {
+					svg.selectAll(`.ribbon-${d.index}-${i}`).classed('highlight_bid_viz', true).moveToFront()
+					svg.selectAll(`.ribbon-${i}-${d.index}`).classed('highlight_bid_viz', true).moveToFront()
+				}
+
+
+				let numbers = new Set();
+				svg
+					.selectAll(".ribbons")
+					.selectAll("*")
+					.filter(val => val.source.index === d.index || val.source.subindex === d.index || val.target.index ===
+						d.index || val.target.subindex === d.index)
+					._groups[0]
+					.forEach(
+						(val) => {
+							numbers.add(val.className.baseVal.split(" ")[0].split("-")[1])
+							numbers.add(val.className.baseVal.split(" ")[0].split("-")[2])
+						}
+					)
+
+				for (let item of numbers) svg.selectAll(`.node-${item}`).classed('highlight_bid_viz', true)
+			}
+		}
+
+		function node_mouseout(svg, d) {
+			if (!hold_shown_values) {
+				svg.selectAll('.nodes').classed('fade_bid_viz', false)
+				svg.selectAll(`.node-${d.index}`).classed('highlight_bid_viz', false)
+				svg.selectAll('.ribbons').classed('fade_bid_viz', false)
+				svg.selectAll(`.ribbon-`).classed('highlight_bid_viz', false)
+				for (let i = 0; i < matrix.length; i++) {
+					svg.selectAll(`.ribbon-${d.index}-${i}`).classed('highlight_bid_viz', false)
+					svg.selectAll(`.ribbon-${i}-${d.index}`).classed('highlight_bid_viz', false)
+				}
+
+				let numbers = new Set();
+				let x = document.querySelectorAll(`[class^="ribbon-"]`)
+				for (let i = 0; i < x.length; i++) {
+					if (x[i].className.baseVal.indexOf(d.index.toString()) != -1) {
+						numbers.add(x[i].className.baseVal.split(" ")[0].split("-")[1])
+						numbers.add(x[i].className.baseVal.split(" ")[0].split("-")[2])
+					}
+				}
+
+				for (let item of numbers) svg.selectAll(`.node-${item}`).classed('highlight_bid_viz', false)
+			}
+		}
+
+		function chord_mouseover(svg, d) {
+			if (!hold_shown_values) {
+				svg.selectAll('.ribbons').classed('fade_bid_viz', true)
+				svg.selectAll(`.ribbon-${d.source.index}-${d.target.index}`).classed('highlight_bid_viz', true)
+					.moveToFront()
+				svg.selectAll('.nodes').classed('fade_bid_viz', true)
+				svg.selectAll(`.node-${d.source.index}`).classed('highlight_bid_viz', true)
+				svg.selectAll(`.node-${d.target.index}`).classed('highlight_bid_viz', true)
+			}
+		}
+
+		function chord_mouseout(svg, d) {
+			if (!hold_shown_values) {
+				svg.selectAll('.ribbons').classed('fade_bid_viz', false)
+				svg.selectAll(`.ribbon-${d.source.index}-${d.target.index}`).classed('highlight_bid_viz', false)
+				svg.selectAll('.nodes').classed('fade_bid_viz', false)
+				svg.selectAll(`.node-${d.source.index}`).classed('highlight_bid_viz', false)
+				svg.selectAll(`.node-${d.target.index}`).classed('highlight_bid_viz', false)
+			}
+		}
+
+		function all_on_click() {
+			console.log(hold_shown_values);
+			hold_shown_values = hold_shown_values ? false : true
+			console.log(hold_shown_values);
+		}
+
+		function def_layout(matrix, entity_padding) {
+			return d3.chord()
+				.padAngle(entity_padding)
+				.sortSubgroups(d3.ascending)
+				(matrix)
+		}
+
+		function update_matrix(dim_l, dim_r) {
+			let new_matrix = []
+
+			for (let i = data[dim_r]['start_i']; i < data[dim_r]['end_i']; i++) {
+				let new_list = []
+				for (let j = data[dim_l]['start_i']; j < data[dim_l]['end_i']; j++) {
+					new_list.push(full_matrix[i][j])
+				}
+				new_matrix.push(new_list)
+				new_list = []
+			}
+
+			const new_matrix_t = new_matrix[0].map((col, i) => new_matrix.map(row => row[i]))
+			const first_zeros = zeros(new_matrix.length, new_matrix.length);
+			const second_zeros = zeros(new_matrix[0].length, new_matrix[0].length);
+			const build_matrix_top = concat_matrix(first_zeros, new_matrix);
+			const build_matrix_bot = concat_matrix(new_matrix_t, second_zeros);
+			const end_matrix = join_matrix(build_matrix_top, build_matrix_bot);
+
+			return end_matrix;
+		}
+
+		function update_viz(dim_l, dim_r) {
+
+			d3.select("#bid_viz" + id).selectAll("*").remove();
+
+			let svg = d3.select("#bid_viz" + id)
+				.append("svg")
+				.attr("width", width)
+				.attr("height", height)
+				.attr("viewbox", `0 0 600 600`)
+				.append("g")
+				.attr("transform", `translate(${width / 2},${height / 2})`)
+
+			let res = def_layout(matrix, entity_padding)
+
+			//Nodes insert
+			let color_count = -1
+			svg
+				.datum(res)
+				.append("g")
+				.attr("class", "nodes")
+				.selectAll("g")
+				.data(d => d.groups)
+				.enter()
+				.append("g")
+				.attr("class", d => `node-${d.index}`)
+				.append("path")
+				.style("fill", (d, i) => {
+					if (i < data[dim_r]['values'].length) {
+						if (data[dim_r]['values'][i] == "missing value") {
+							d.color = "white";
+							return "white";
+						} else {
+							color_count += 1
+							d.color = l_dim_colors[color_count]
+							return l_dim_colors[color_count]
+						}
+					} else {
+						if (data[dim_l]['values'][i - data[dim_r]['values'].length] == "missing value") {
+							d.color = "white"
+							return "white"
+						} else {
+							d.color = r_dim_color
+							return r_dim_color
+						}
+					}
+				})
+				.style("stroke", d => d.color == "white" ? "black" : d3.rgb(d.color).darker())
+				.attr("d", d3.arc().innerRadius(innerRadius).outerRadius(outerRadius))
+				.on('mouseover', d => {
+					node_mouseover(svg, d)
+				})
+				.on('mouseout', d => {
+					node_mouseout(svg, d)
+				})
+				.on("click", d => all_on_click())
+			//Text insert
+			svg.selectAll(".nodes")
+				.selectAll("g")
+				.append("text")
+				.each(d => {
+					d.angle = (d.startAngle + d.endAngle) / 2;
+				})
+				.attr("dy", ".35em")
+				.attr("transform", d => `
+      rotate(${(d.angle * 180 / Math.PI - 90)})
+      translate(${innerRadius + 26})
+      ${d.angle > Math.PI ? "rotate(180)" : ""}
+    `)
+				.attr("text-anchor", d => d.angle > Math.PI ? "end" : null)
+				.text(d => labels[d.index])
+				.attr("font-family", "Roboto")
+
+			//Chords insert
+			svg
+				.datum(res)
+				.append("g")
+				.attr("class", "ribbons")
+				.selectAll("path")
+				.data(d => d)
+				.enter()
+				.append("path")
+				.attr("d", d3.ribbon().radius(innerRadius))
+				.style("fill", d => {
+					d.color = svg.select(`.node-${d.source.index}`)._groups[0][0].firstChild.style.fill
+					return d.color
+				})
+				.style("stroke", d => d.color == "white" ? "black" : d3.rgb(d.color).darker())
+				.attr("class", d => `ribbon-${d.source.index}-${d.target.index}`)
+				.style("opacity", ".80")
+				.on('mouseover', d => chord_mouseover(svg, d))
+				.on('mouseout', d => chord_mouseout(svg, d))
+				.on("click", d => all_on_click())
+		}
+
+		function select_on_change() {
+
+			const dim_l = select_a.value;
+			const dim_r = select_b.value;
+			l_dim_colors = generate_colors(data[dim_r]['values']);
+			update_selects(dim_l, dim_r);
+			labels = data[dim_r]['values'].concat(data[dim_l]['values']);
+			matrix = update_matrix(dim_l, dim_r);
+			update_viz(dim_l, dim_r);
+		}
+
+		function btn_on_click() {
+			const dim_l = select_b.value;
+			const dim_r = select_a.value;
+			l_dim_colors = generate_colors(data[dim_r]['values']);
+			update_selects(dim_l, dim_r);
+			labels = data[dim_r]['values'].concat(data[dim_l]['values']);
+
+			matrix = update_matrix(dim_l, dim_r);
+			update_viz(dim_l, dim_r);
+		}
+
+		function update_selects(dim_l, dim_r) {
+
+			let keep_selected_a = dim_l
+			let keep_selected_b = dim_r
+
+			let values_a = dimensions.filter(value => value !== keep_selected_b)
+			let values_b = dimensions.filter(value => value !== keep_selected_a)
+
+			select_a.innerHTML = ''
+			select_b.innerHTML = ''
+
+			values_a.forEach((item) => {
+				let opt_a = document.createElement('option');
+				opt_a.value = item;
+				opt_a.innerHTML = item;
+				select_a.appendChild(opt_a);
+			})
+
+			values_b.forEach((item) => {
+				let opt_b = document.createElement('option');
+				opt_b.value = item;
+				opt_b.innerHTML = item;
+				select_b.appendChild(opt_b);
+			})
+
+			select_a.value = keep_selected_a
+			select_b.value = keep_selected_b
+		}
+		d3.selection.prototype.moveToFront = function () {
+			return this.each(function () {
+				this.parentNode.appendChild(this)
+			})
+		}
+
+		/*
+		 * Initial code
+		 */
+
+		//Populate Select
+		dimensions.forEach((item, index) => {
+			let opt_a = document.createElement('option')
+			opt_a.value = item
+			opt_a.innerHTML = item
+			const opt_b = opt_a.cloneNode(true)
+			if (index != 1) select_a.appendChild(opt_a)
+			if (index != 0) select_b.appendChild(opt_b)
+		})
+
+		select_a.addEventListener("change", select_on_change);
+		select_b.addEventListener("change", select_on_change);
+		swap_btn.addEventListener("click", btn_on_click);
+		select_on_change();
+	}
+
 	function plotVaribleTypesChart(svg, data) {
 		var barHeight = 25;
 		var color = d3.scaleOrdinal()
 			.domain(data.map(d => d.name))
 			.range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), data.length).reverse());
-		var margin = {left: 20, right: 20}
+		var margin = {
+			left: 20,
+			right: 20
+		}
 		var width = 350;
 		var height = 60;
 		svg
@@ -22,7 +845,7 @@
 			.style("border-width", "thin")
 			.style("padding", "2px");
 		var total = 0;
-		for(var i = 0; i < data.length; i++) {
+		for (var i = 0; i < data.length; i++) {
 			data[i].start = total;
 			total += data[i].number;
 		}
@@ -36,29 +859,42 @@
 			.attr("x", d => (margin.left + d.start / total * width))
 			.attr("y", height - barHeight)
 			.attr("fill", d => color(d.name))
-			.on("mouseover", d => tooltip.style("visibility", "visible").text(d.name+": "+d.number))
-			.on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
-			.on("mouseout", function(){return tooltip.style("visibility", "hidden");});
-		
+			.on("mouseover", d => tooltip.style("visibility", "visible").text(d.name + ": " + d.number))
+			.on("mousemove", function () {
+				return tooltip.style("top", (event.pageY - 10) + "px").style("left", (event.pageX + 10) + "px");
+			})
+			.on("mouseout", function () {
+				return tooltip.style("visibility", "hidden");
+			});
+
 		var borderRadius = barHeight * 3 / 20
-		
+
 		svg.append("path")
-			.attr("d", "M "+(margin.left - 0.5)+" "+(height - barHeight - 0.5)+" L "+(margin.left - 0.5)+" "+(height - barHeight + borderRadius)+" S "+(margin.left - 0.5)+" "+(height - barHeight - 0.5)+" "+(margin.left + borderRadius)+" "+(height - barHeight - 0.5)+" Z")
+			.attr("d", "M " + (margin.left - 0.5) + " " + (height - barHeight - 0.5) + " L " + (margin.left - 0.5) + " " +
+				(height - barHeight + borderRadius) + " S " + (margin.left - 0.5) + " " + (height - barHeight - 0.5) +
+				" " + (margin.left + borderRadius) + " " + (height - barHeight - 0.5) + " Z")
 			.attr("stroke", "white")
 			.attr("fill", "white");
 		svg.append("path")
-			.attr("d", "M "+(margin.left - 0.5)+" "+(height + 0.5)+" L "+(margin.left - 0.5)+" "+(height - borderRadius)+" S "+(margin.left - 0.5)+" "+(height + 0.5)+" "+(margin.left + borderRadius)+" "+(height + 0.5)+" Z")
+			.attr("d", "M " + (margin.left - 0.5) + " " + (height + 0.5) + " L " + (margin.left - 0.5) + " " + (height -
+				borderRadius) + " S " + (margin.left - 0.5) + " " + (height + 0.5) + " " + (margin.left +
+					borderRadius) + " " + (height + 0.5) + " Z")
 			.attr("stroke", "white")
 			.attr("fill", "white");
 		svg.append("path")
-			.attr("d", "M "+(width + margin.right + 0.5)+" "+(height - barHeight - 0.5)+" L "+(width + margin.right + 0.5)+" "+(height - barHeight + borderRadius)+" S "+(width + margin.right + 0.5)+" "+(height - barHeight - 0.5)+" "+(width + margin.right - borderRadius)+" "+(height - barHeight - 0.5)+" Z")
+			.attr("d", "M " + (width + margin.right + 0.5) + " " + (height - barHeight - 0.5) + " L " + (width + margin
+				.right + 0.5) + " " + (height - barHeight + borderRadius) + " S " + (width + margin.right + 0.5) +
+				" " + (height - barHeight - 0.5) + " " + (width + margin.right - borderRadius) + " " + (height -
+					barHeight - 0.5) + " Z")
 			.attr("stroke", "white")
 			.attr("fill", "white");
 		svg.append("path")
-			.attr("d", "M "+(width + margin.right + 0.5)+" "+(height + 0.5)+" L "+(width + margin.right + 0.5)+" "+(height - borderRadius)+" S "+(width + margin.right + 0.5)+" "+(height + 0.5)+" "+(width + margin.right - borderRadius)+" "+(height + 0.5)+" Z")
+			.attr("d", "M " + (width + margin.right + 0.5) + " " + (height + 0.5) + " L " + (width + margin.right + 0.5) +
+				" " + (height - borderRadius) + " S " + (width + margin.right + 0.5) + " " + (height + 0.5) + " " + (
+					width + margin.right - borderRadius) + " " + (height + 0.5) + " Z")
 			.attr("stroke", "white")
 			.attr("fill", "white");
-			
+
 		svg.append("g")
 			.selectAll("text")
 			.data(data)
@@ -66,99 +902,111 @@
 			.attr("x", d => (margin.left + 5 + d.start / total * width))
 			.attr("y", height - 5)
 			.attr("fill", "black")
-			.text(function(d){if(d.number / total * width >= 50){return parseFloat((d.number / total * 100).toFixed(1))+"%";} return "";})
-			.on("mouseover", d => tooltip.style("visibility", "visible").text(d.name+": "+d.number))
-			.on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
-			.on("mouseout", function(){return tooltip.style("visibility", "hidden");});
-		
+			.text(function (d) {
+				if (d.number / total * width >= 50) {
+					return parseFloat((d.number / total * 100).toFixed(1)) + "%";
+				}
+				return "";
+			})
+			.on("mouseover", d => tooltip.style("visibility", "visible").text(d.name + ": " + d.number))
+			.on("mousemove", function () {
+				return tooltip.style("top", (event.pageY - 10) + "px").style("left", (event.pageX + 10) + "px");
+			})
+			.on("mouseout", function () {
+				return tooltip.style("visibility", "hidden");
+			});
+
 		var groups = [];
 		var aux = [];
-		for(var i = 0; i < data.length; i++) {
-			if(data[i].number / total * width >= 50) {
-				if(aux.length > 0) {
+		for (var i = 0; i < data.length; i++) {
+			if (data[i].number / total * width >= 50) {
+				if (aux.length > 0) {
 					groups.push(aux);
 					aux = [];
 				}
 			} else {
-				if(data[i].number != 0){
+				if (data[i].number != 0) {
 					aux.push(data[i]);
 				}
 			}
 		}
-		if(aux.length > 0) {
+		if (aux.length > 0) {
 			groups.push(aux);
 		}
-		if(groups.length > 0) {
+		if (groups.length > 0) {
 			var labelLength = 45;
 			var group = [];
 			var groupLength = 0;
-			var center = 0, start = 0;
+			var center = 0,
+				start = 0;
 			var labels = [];
-			for(var i = 0; i < groups.length; i++) {
+			for (var i = 0; i < groups.length; i++) {
 				group = groups[i];
 				groupLength = labelLength * group.length;
-				center = margin.left + (group[0].start / total * width + (group[group.length-1].start / total * width + (group[group.length-1].number / total * width))) / 2;
+				center = margin.left + (group[0].start / total * width + (group[group.length - 1].start / total * width + (
+					group[group.length - 1].number / total * width))) / 2;
 				start = center - groupLength / 2;
-				for(var j = 0; j < group.length; j++) {
+				for (var j = 0; j < group.length; j++) {
 					group[j].labelX = start + j * labelLength;
 					labels.push(group[j]);
 				}
 			}
 			var offset;
 			group = groups[0];
-			if(group[0].labelX < 0) {
+			if (group[0].labelX < 0) {
 				offset = group[0].labelX;
-				for(var i = 0; i < group.length; i++) {
+				for (var i = 0; i < group.length; i++) {
 					group[i].labelX = group[i].labelX - offset;
 				}
 			}
 			var leftGroupEnd;
-			for(var i = 1; i < groups.length; i++) {
+			for (var i = 1; i < groups.length; i++) {
 				group = groups[i];
 				leftGroupEnd = groups[i - 1][0].labelX + labelLength * groups[i - 1].length;
-				if(group[0].labelX < leftGroupEnd) {
+				if (group[0].labelX < leftGroupEnd) {
 					offset = leftGroupEnd - group[0].labelX;
-					for(var j = 0; j < group.length; j++) {
+					for (var j = 0; j < group.length; j++) {
 						group[j].labelX = group[j].labelX + offset;
 					}
 				}
 			}
 			group = groups[groups.length - 1];
-			if(group[0].labelX + labelLength * group.length > width + margin.right + margin.left) {
+			if (group[0].labelX + labelLength * group.length > width + margin.right + margin.left) {
 				offset = group[0].labelX + labelLength * group.length - (width + margin.right + margin.left);
-				for(var i = 0; i < group.length; i++) {
+				for (var i = 0; i < group.length; i++) {
 					group[i].labelX = group[i].labelX - offset;
 				}
 			}
 			var rightGroupStart;
-			for(var i = groups.length - 2; i >= 0; i--) {
+			for (var i = groups.length - 2; i >= 0; i--) {
 				group = groups[i];
 				rightGroupStart = groups[i + 1][0].labelX;
-				if(group[0].labelX + group.length * labelLength > rightGroupStart) {
+				if (group[0].labelX + group.length * labelLength > rightGroupStart) {
 					offset = group[0].labelX + group.length * labelLength - rightGroupStart;
-					for(var j = 0; j < group.length; j++) {
+					for (var j = 0; j < group.length; j++) {
 						group[j].labelX = group[j].labelX - offset;
 					}
 				}
 			}
-			
+
 			svg.append("g")
 				.selectAll("text")
 				.data(labels)
 				.join("text")
 				.attr("x", d => d.labelX)
 				.attr("y", 15)
-				.text(d => (parseFloat((d.number / total * 100).toFixed(1))+"%"));
-			
+				.text(d => (parseFloat((d.number / total * 100).toFixed(1)) + "%"));
+
 			svg.append("g")
 				.selectAll("path")
 				.data(labels)
 				.join("path")
-				.attr("d", d => ("M " + (margin.left + d.start / total * width + (d.number / total * width) / 2) + " " + (height - barHeight / 2) + "L " + (d.labelX + labelLength / 2) + " " + (17)))
+				.attr("d", d => ("M " + (margin.left + d.start / total * width + (d.number / total * width) / 2) + " " + (
+					height - barHeight / 2) + "L " + (d.labelX + labelLength / 2) + " " + (17)))
 				.attr("stroke", "black");
 		}
 	}
-	
+
 	function plotHistogramNum(svg, data, width, height) {
 		var lWidth = 60;
 		var lHeight = 30;
@@ -167,8 +1015,13 @@
 		svg.attr("width", width)
 			.attr("height", height);
 		var bWidth = cWidth / data.length;
-		var yMax = data.reduce(function(a, b){if (a.length > b.length){return a;}return b;}).length;
-		
+		var yMax = data.reduce(function (a, b) {
+			if (a.length > b.length) {
+				return a;
+			}
+			return b;
+		}).length;
+
 		svg.append("g")
 			.selectAll("rect")
 			.data(data)
@@ -178,36 +1031,39 @@
 			.attr("x", (d, i) => lWidth + i * bWidth)
 			.attr("y", d => (cHeight - (d.length / yMax * cHeight)))
 			.attr("fill", "rgb(66, 136, 181)");
-		
+
 		var x = d3.scaleLinear().range([lWidth, width - 1]);
 		var y = d3.scaleLinear().range([cHeight, 0]);
 		x.domain([data[0].x0, data[data.length - 1].x1]);
-		y.domain([0, d3.max(data, function(d) { return d.length; })]);
-		
+		y.domain([0, d3.max(data, function (d) {
+			return d.length;
+		})]);
+
 		var xAxis = d3.axisBottom(x).ticks(6);
 		var xTicks = x.ticks();
-		if(xTicks[0] < -1000000 || xTicks[xTicks.length - 1] >= 1000000 || xTicks[0] + 0.001 > xTicks[xTicks.length - 1]) {
+		if (xTicks[0] < -1000000 || xTicks[xTicks.length - 1] >= 1000000 || xTicks[0] + 0.001 > xTicks[xTicks.length -
+			1]) {
 			xAxis.tickFormat(d3.format(".1e"));
 		}
 		svg.append("g")
 			.attr("transform", "translate(0," + cHeight + ")")
 			.call(xAxis);
 
-		svg.append("text")             
-			.attr("transform", "translate(" + (lWidth+cWidth/2) + " ," + (cHeight + lHeight) + ")")
+		svg.append("text")
+			.attr("transform", "translate(" + (lWidth + cWidth / 2) + " ," + (cHeight + lHeight) + ")")
 			.style("text-anchor", "middle")
 			.style("font-size", "12px")
 			.text("Value");
 
 		var yAxis = d3.axisLeft(y);
 		var yTicks = y.ticks();
-		if(yTicks[yTicks.length - 1] >= 10000) {
+		if (yTicks[yTicks.length - 1] >= 10000) {
 			yAxis.tickFormat(d3.format(".1e"));
 		}
 		svg.append("g")
-			.attr("transform", "translate("+lWidth+", 0)")
+			.attr("transform", "translate(" + lWidth + ", 0)")
 			.call(yAxis);
-		
+
 		svg.append("text")
 			.attr("transform", "rotate(-90)")
 			.attr("y", 0)
@@ -216,9 +1072,13 @@
 			.style("text-anchor", "middle")
 			.style("font-size", "12px")
 			.text("Frequency");
-		svg.selectAll(".tick").filter(function(d){return (d3.select(this).attr("transform").match(/[0-9]+/g)[0] > width - 18) || (d3.select(this).attr("transform").match(/[0-9]+/g)[0] == 0 && d3.select(this).attr("transform").match(/[0-9]+/g)[1] < 5);}).attr("transform", "translate(-1000,-1000)");
+		svg.selectAll(".tick").filter(function (d) {
+			return (d3.select(this).attr("transform").match(/[0-9]+/g)[0] > width - 18) || (d3.select(this).attr(
+				"transform").match(/[0-9]+/g)[0] == 0 && d3.select(this).attr("transform").match(
+					/[0-9]+/g)[1] < 5);
+		}).attr("transform", "translate(-1000,-1000)");
 	}
-	
+
 	function plotHistogramDate(svg, data, width, height) {
 		var lWidth = 60;
 		var lHeight = 30;
@@ -227,8 +1087,13 @@
 		svg.attr("width", width)
 			.attr("height", height);
 		var bWidth = cWidth / data.length;
-		var yMax = data.reduce(function(a, b){if (a.length > b.length){return a;}return b;}).length;
-		
+		var yMax = data.reduce(function (a, b) {
+			if (a.length > b.length) {
+				return a;
+			}
+			return b;
+		}).length;
+
 		svg.append("g")
 			.selectAll("rect")
 			.data(data)
@@ -238,29 +1103,31 @@
 			.attr("x", (d, i) => lWidth + i * bWidth)
 			.attr("y", d => (cHeight - (d.length / yMax * cHeight)))
 			.attr("fill", "rgb(66, 136, 181)");
-		
+
 		var x = d3.scaleTime().range([lWidth, width - 1]);
 		var y = d3.scaleLinear().range([cHeight, 0]);
 		x.domain([data[0].x0, data[data.length - 1].x1]);
-		y.domain([0, d3.max(data, function(d) { return d.length; })]);
-		
+		y.domain([0, d3.max(data, function (d) {
+			return d.length;
+		})]);
+
 		svg.append("g")
 			.attr("transform", "translate(0," + cHeight + ")")
 			.call(d3.axisBottom(x).ticks(6));
 
-		svg.append("text")             
-			.attr("transform", "translate(" + (lWidth+cWidth/2) + " ," + (cHeight + lHeight) + ")")
+		svg.append("text")
+			.attr("transform", "translate(" + (lWidth + cWidth / 2) + " ," + (cHeight + lHeight) + ")")
 			.style("text-anchor", "middle")
 			.style("font-size", "12px")
 			.text("Value");
 
 		var yAxis = d3.axisLeft(y);
 		var yTicks = y.ticks();
-		if(yTicks[yTicks.length - 1] >= 10000) {
+		if (yTicks[yTicks.length - 1] >= 10000) {
 			yAxis.tickFormat(d3.format(".1e"));
 		}
 		svg.append("g")
-			.attr("transform", "translate("+lWidth+", 0)")
+			.attr("transform", "translate(" + lWidth + ", 0)")
 			.call(yAxis);
 
 		svg.append("text")
@@ -271,9 +1138,13 @@
 			.style("text-anchor", "middle")
 			.style("font-size", "12px")
 			.text("Frequency");
-		svg.selectAll(".tick").filter(function(d){return (d3.select(this).attr("transform").match(/[0-9]+/g)[0] > width - 18) || (d3.select(this).attr("transform").match(/[0-9]+/g)[0] == 0 && d3.select(this).attr("transform").match(/[0-9]+/g)[1] < 5);}).attr("transform", "translate(-1000,-1000)");
+		svg.selectAll(".tick").filter(function (d) {
+			return (d3.select(this).attr("transform").match(/[0-9]+/g)[0] > width - 18) || (d3.select(this).attr(
+				"transform").match(/[0-9]+/g)[0] == 0 && d3.select(this).attr("transform").match(
+					/[0-9]+/g)[1] < 5);
+		}).attr("transform", "translate(-1000,-1000)");
 	}
-	
+
 	function plotMissingValuesBar(svg, missing_str, width, height) {
 		var bHeight = height / 2;
 		var missing = parseFloat(parseFloat(missing_str.substring(0, missing_str.length - 1)).toFixed(1));
@@ -294,14 +1165,14 @@
 			.attr("width", missingBarWidth)
 			.attr("height", bHeight)
 			.attr("fill", "rgb(209, 60, 75)");
-		
-		if(height < 45) {
+
+		if (height < 45) {
 			var fontSize = "12px";
 		} else {
 			var fontSize = "14px";
 		}
 		svg.append("text")
-			.text(valid+"%")
+			.text(valid + "%")
 			.attr("font-size", fontSize)
 			.attr("x", "5")
 			.attr("y", bHeight - 5)
@@ -313,7 +1184,7 @@
 			.attr("y", height - 5)
 			.attr("fill", "rgb(126, 201, 166)");
 		svg.append("text")
-			.text(missing+"%")
+			.text(missing + "%")
 			.attr("font-size", fontSize)
 			.attr("text-anchor", "end")
 			.attr("x", width - 5)
@@ -326,22 +1197,25 @@
 			.attr("x", width - 5)
 			.attr("y", height - 5)
 			.attr("fill", "rgb(209, 60, 75)");
-			
+
 		var borderRadius = bHeight * 3 / 20
 		svg.append("path")
-			.attr("d", "M 0 0 L 0 "+borderRadius+" S 0 0 "+borderRadius+" 0 Z")
+			.attr("d", "M 0 0 L 0 " + borderRadius + " S 0 0 " + borderRadius + " 0 Z")
 			.attr("fill", "white");
 		svg.append("path")
-			.attr("d", "M 0 "+bHeight+" L 0 "+(bHeight - borderRadius)+" S 0 "+bHeight+" "+borderRadius+" "+bHeight+" Z")
+			.attr("d", "M 0 " + bHeight + " L 0 " + (bHeight - borderRadius) + " S 0 " + bHeight + " " + borderRadius +
+				" " + bHeight + " Z")
 			.attr("fill", "white");
 		svg.append("path")
-			.attr("d", "M "+width+" 0 L "+width+" "+borderRadius+" S "+width+" 0 "+(width - borderRadius)+" 0 Z")
+			.attr("d", "M " + width + " 0 L " + width + " " + borderRadius + " S " + width + " 0 " + (width -
+				borderRadius) + " 0 Z")
 			.attr("fill", "white");
 		svg.append("path")
-			.attr("d", "M "+width+" "+bHeight+" L "+width+" "+(bHeight - borderRadius)+" S "+width+" "+bHeight+" "+(width - borderRadius)+" "+bHeight+" Z")
+			.attr("d", "M " + width + " " + bHeight + " L " + width + " " + (bHeight - borderRadius) + " S " + width +
+				" " + bHeight + " " + (width - borderRadius) + " " + bHeight + " Z")
 			.attr("fill", "white");
 	}
-	
+
 	function plotBox(svg, data) {
 		var marginTop = 20;
 		var marginBottom = 20;
@@ -355,19 +1229,19 @@
 		var q3 = d3.quantile(data, 0.75);
 		var min = data[0];
 		var max = data[data.length - 1];
-		
+
 		var y = d3.scaleLinear()
 			.domain([min, max])
 			.range([height + marginTop, marginTop]);
 		var yAxis = d3.axisLeft(y);
 		var yTicks = y.ticks();
-		if(yTicks[yTicks.length - 1] >= 1000000) {
+		if (yTicks[yTicks.length - 1] >= 1000000) {
 			yAxis.tickFormat(d3.format(".1e"));
 		}
 		svg.append("g")
 			.attr("transform", "translate(50,0)")
 			.call(yAxis);
-		
+
 		svg.append("line")
 			.attr("stroke", "black")
 			.attr("x1", width / 2)
@@ -387,7 +1261,7 @@
 			.attr("y", y(q3))
 			.attr("height", y(q1) - y(q3))
 			.attr("width", 100)
-			.attr("fill","rgb(66, 136, 181)")
+			.attr("fill", "rgb(66, 136, 181)")
 			.attr("stroke", "black")
 			.attr("stroke-width", 1.5);
 		svg.append("line")

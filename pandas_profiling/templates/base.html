@@ -1,265 +1,328 @@
 <meta charset="UTF-8">
 
 <style>
+    @import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
+    @import url('http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css');
 
-        .variablerow {
-            border: 1px solid #e1e1e8;
-            border-top: hidden;
-            padding-top: 1em;
-            padding-bottom: 1em;
-            padding-left: 1em;
-            padding-right: 1em;
-        }
+    .variablerow {
+        border: 1px solid #e1e1e8;
+        border-top: hidden;
+        padding-top: 1em;
+        padding-bottom: 1em;
+        padding-left: 1em;
+        padding-right: 1em;
+    }
 
-        .headerrow {
-            border: 1px solid #e1e1e8;
-            background-color: #f5f5f5;
-            padding: 2em;
-        }
-        .namecol {
-            margin-top: -1em;
-            overflow-x: auto;
-        }
+    .headerrow {
+        border: 1px solid #e1e1e8;
+        background-color: #f5f5f5;
+        padding: 2em;
+    }
 
-        .dl-horizontal dt {
-            text-align: left;
-            padding-right: 1em;
-            white-space: normal;
-        }
+    .namecol {
+        margin-top: -1em;
+        overflow-x: auto;
+    }
 
-        .dl-horizontal dd {
-            margin-left: 0;
-        }
+    .dl-horizontal dt {
+        text-align: left;
+        padding-right: 1em;
+        white-space: normal;
+    }
 
-        .ignore {
-            opacity: 0.4;
-        }
+    .dl-horizontal dd {
+        margin-left: 0;
+    }
 
-        .container.pandas-profiling {
-            max-width:975px;
-        }
+    .ignore {
+        opacity: 0.4;
+    }
 
-        .col-md-12 {
-            padding-left: 2em;
-        }
+    .container.pandas-profiling {
+        max-width: 975px;
+    }
 
-        .indent {
-            margin-left: 1em;
-        }
+    .col-md-12 {
+        padding-left: 2em;
+    }
 
-        .center-img {
-            margin-left: auto !important;
-            margin-right: auto !important;
-            display: block;
-        }
+    .indent {
+        margin-left: 1em;
+    }
 
-        /* Table example_values */
-            table.example_values {
-                border: 0;
-            }
+    .center-img {
+        margin-left: auto !important;
+        margin-right: auto !important;
+        display: block;
+    }
 
-            .example_values th {
-                border: 0;
-                padding: 0 ;
-                color: #555;
-                font-weight: 600;
-            }
+    /* Table example_values */
+    table.example_values {
+        border: 0;
+    }
 
-            .example_values tr, .example_values td{
-                border: 0;
-                padding: 0;
-                color: #555;
-            }
+    .example_values th {
+        border: 0;
+        padding: 0;
+        color: #555;
+        font-weight: 600;
+    }
 
-        /* STATS */
-            table.stats {
-                border: 0;
-            }
+    .example_values tr,
+    .example_values td {
+        border: 0;
+        padding: 0;
+        color: #555;
+    }
 
-            .stats th {
-                border: 0;
-                padding: 0 1em 0 0;
-                color: #555;
-                font-weight: 600;
-            }
+    /* STATS */
+    table.stats {
+        border: 0;
+    }
 
-            .stats tr {
-                border: 0;
-            }
+    .stats th {
+        border: 0;
+        padding: 0 1em 0 0;
+        color: #555;
+        font-weight: 600;
+    }
 
-            .stats td{
-                color: #555;
-                padding: 1px;
-                border: 0;
-            }
+    .stats tr {
+        border: 0;
+    }
 
-
-        /* Sample table */
-            table.sample {
-                border: 0;
-                margin-bottom: 2em;
-                margin-left:1em;
-            }
-            .sample tr {
-                border:0;
-            }
-            .sample td, .sample th{
-                padding: 0.5em;
-                white-space: nowrap;
-                border: none;
-
-            }
-
-            .sample thead {
-                border-top: 0;
-                border-bottom: 2px solid #ddd;
-            }
+    .stats td {
+        color: #555;
+        padding: 1px;
+        border: 0;
+    }
 
 
-        /* There is no good solution available to make the divs equal height and then center ... */
-            .histogram {
-                margin-top: 3em;
-            }
-        /* Freq table */
+    /* Sample table */
+    table.sample {
+        border: 0;
+        margin-bottom: 2em;
+        margin-left: 1em;
+    }
 
-            table.freq {
-                margin-bottom: 2em;
-                border: 0;
-            }
-            table.freq th, table.freq tr, table.freq td {
-                border: 0;
-                padding: 0;
-            }
+    .sample tr {
+        border: 0;
+    }
 
-            .freq thead {
-                font-weight: 600;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
+    .sample td,
+    .sample th {
+        padding: 0.5em;
+        white-space: nowrap;
+        border: none;
 
-            }
+    }
 
-            td.fillremaining{
-                width:auto;
-                max-width: none;
-            }
-
-            td.number, th.number {
-                text-align:right ;
-            }
-
-        /* Freq mini */
-            .freq.mini td{
-                width: 50%;
-                padding: 1px;
-                font-size: 12px;
-
-            }
-            table.freq.mini {
-                 width:100%;
-            }
-            .freq.mini th {
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                max-width: 5em;
-                font-weight: 400;
-                text-align:right;
-                padding-right: 0.5em;
-            }
-
-            .missing {
-                color: rgb(209, 60, 75);
-            }
-            .alert, .alert > th, .alert > td {
-                color: rgb(209, 60, 75);
-            }
+    .sample thead {
+        border-top: 0;
+        border-bottom: 2px solid #ddd;
+    }
 
 
-        /* Bars in tables */
-            .freq .bar{
-                float: left;
-                width: 0;
-                height: 100%;
-                line-height: 20px;
-                color: #fff;
-                text-align: center;
-                background-color: rgb(66, 136, 181);
-                border-radius: 3px;
-                margin-right: 4px;
-            }
-            .other .bar {
-                background-color: #999;
-            }
-            .missing .bar{
-                background-color: rgb(209, 60, 75);
-            }
-            .tooltip-inner {
-                width: 100%;
-                white-space: nowrap;
-                text-align:left;
-            }
+    /* There is no good solution available to make the divs equal height and then center ... */
+    .histogram {
+        margin-top: 3em;
+    }
 
-            .extrapadding{
-                padding: 2em;
-            }
+    /* Freq table */
 
-            .pp-anchor{
+    table.freq {
+        margin-bottom: 2em;
+        border: 0;
+    }
 
-            }
-			
-		/*Warnings and Suggestions collapses*/
-			.panel-heading .collapseButton:after {
-				font-family: 'FontAwesome';
-				content: "\f106";
-				font-size:14px;
-				font-weight: bold;
-			}
-			
-			.panel-heading .collapseButton.collapsed:after {
-				-webkit-transform: rotate(180deg);
-				-moz-transform: rotate(180deg);
-				transform: rotate(180deg);
-				display: inline-block;
-			}
-			
-			.btn-hover-dark {
-				background-color: #eeeeee;
-			}
-			
-			.btn-hover-dark:hover {
-				background-color: #dddddd;
-			}
-			
-			.btn:focus {
-				outline: none;
-			}
-		
-		/*Help*/
-			.help-button:after {
-				font-family: 'FontAwesome';
-				content: "\f29c";
-				font-size: 14px;
-				font-weight: normal;
-				margin-left: 5px;
-				font-size: 17px;
-				color: #000000;
-				cursor: pointer;
-			}
-			
-			.help-button:hover {
-				text-decoration: none;
-			}
-			
-			.inline-block {
-				display: inline-block;
-			}
-			
-			.help {
-				padding-left: 1em;
-				padding-right: 1em;
-				width: 350px;
-			}
+    table.freq th,
+    table.freq tr,
+    table.freq td {
+        border: 0;
+        padding: 0;
+    }
+
+    .freq thead {
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+    }
+
+    td.fillremaining {
+        width: auto;
+        max-width: none;
+    }
+
+    td.number,
+    th.number {
+        text-align: right;
+    }
+
+    /* Freq mini */
+    .freq.mini td {
+        width: 50%;
+        padding: 1px;
+        font-size: 12px;
+
+    }
+
+    table.freq.mini {
+        width: 100%;
+    }
+
+    .freq.mini th {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 5em;
+        font-weight: 400;
+        text-align: right;
+        padding-right: 0.5em;
+    }
+
+    .missing {
+        color: rgb(209, 60, 75);
+    }
+
+    .alert,
+    .alert>th,
+    .alert>td {
+        color: rgb(209, 60, 75);
+    }
+
+
+    /* Bars in tables */
+    .freq .bar {
+        float: left;
+        width: 0;
+        height: 100%;
+        line-height: 20px;
+        color: #fff;
+        text-align: center;
+        background-color: rgb(66, 136, 181);
+        border-radius: 3px;
+        margin-right: 4px;
+    }
+
+    .other .bar {
+        background-color: #999;
+    }
+
+    .missing .bar {
+        background-color: rgb(209, 60, 75);
+    }
+
+    .tooltip-inner {
+        width: 100%;
+        white-space: nowrap;
+        text-align: left;
+    }
+
+    .extrapadding {
+        padding: 2em;
+    }
+
+    .pp-anchor {}
+
+    /*Warnings and Suggestions collapses*/
+    .panel-heading .collapseButton:after {
+        font-family: 'FontAwesome';
+        content: "\f106";
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .panel-heading .collapseButton.collapsed:after {
+        -webkit-transform: rotate(180deg);
+        -moz-transform: rotate(180deg);
+        transform: rotate(180deg);
+        display: inline-block;
+    }
+
+    .btn-hover-dark {
+        background-color: #eeeeee;
+    }
+
+    .btn-hover-dark:hover {
+        background-color: #dddddd;
+    }
+
+    .btn:focus {
+        outline: none;
+    }
+
+    /*Help*/
+    .help-button:after {
+        font-family: 'FontAwesome';
+        content: "\f29c";
+        font-size: 14px;
+        font-weight: normal;
+        margin-left: 5px;
+        font-size: 17px;
+        color: #000000;
+        cursor: pointer;
+    }
+
+    .help-button:hover {
+        text-decoration: none;
+    }
+
+    .inline-block {
+        display: inline-block;
+    }
+
+    .help {
+        padding-left: 1em;
+        padding-right: 1em;
+        width: 350px;
+    }
+
+    /* BID Viz */
+
+    .highlight_bid_viz {
+        fill-opacity: 1;
+        stroke-opacity: 1;
+    }
+
+    .fade_bid_viz {
+        fill-opacity: 0.06;
+        stroke-opacity: 0;
+    }
+
+    .select_item_viz {
+        width: 300px;
+        height: 46px;
+        border-radius: 2%;
+        border: 1px black solid;
+        text-align: center;
+        font-family: 'Roboto', sans-serif;
+        font-size: 16px;
+        cursor: pointer;
+
+    }
+
+    .swap_btn_viz {
+        height: 46px;
+        border-radius: 20%;
+        border: none;
+        background-color: lavender;
+        cursor: pointer;
+    }
+
+    /* Table Viz */
+
+    .data-text {
+        font-size: 14px;
+        text-align: center;
+        background-color: black;
+    }
+
+    #table_viz {
+        font-family: 'Roboto', sans-serif;
+        font-size: 12px;
+    }
 </style>
 <script>
 	require.config({
@@ -269,91 +332,120 @@
 	});
 </script>
 <div class="container pandas-profiling">
-	<script>
-		if (typeof id !== 'undefined') {
-			id++;
-		} else {
-			var id = 0;
-		}
-	</script>
-	{% include 'plot.html' %}
-	<div class="row headerrow highlight">
-		<h1 style="font-size: 36px;">Data Profiling</h1>
-	</div>
-	<script>
-		d3.select("#overviewLink").attr("href", "#overview"+id).attr("id", "overviewLink"+id);
-		d3.select("#variablesLink").attr("href", "#variables"+id).attr("id", "variablesLink"+id);
-		{% if values['missing'] %}
-			d3.select("#missingLink").attr("href", "#missing"+id).attr("id", "missingLink"+id);
-		{% endif %}
-		{% if values['correlations'] %}
-			d3.select("#correlationsLink").attr("href", "#correlations"+id).attr("id", "correlationsLink"+id);
-		{% endif %}
-		d3.select("#sampleLink").attr("href", "#sample"+id).attr("id", "sampleLink"+id);
-		d3.select("#overview").attr("id", "overview"+id);
-		d3.select("#variables").attr("id", "variables"+id);
-		{% if values['missing'] %}
-			d3.select("#missing").attr("id", "missing"+id);
-		{% endif %}
-		{% if values['correlations'] %}
-			d3.select("#correlations").attr("id", "correlations"+id);
-		{% endif %}
-		d3.select("#sample").attr("id", "sample"+id);
-	</script>
-	<div class="row variablerow">
-		<p class="h4" style="font-weight: bold;">Contents</p>
-		<ul>
-			<li><a id="overviewLink" href="#overview">Overview</a></li>
-			<li><a id="variablesLink" href="#variables">Variables</a></li>
-			{% if values['missing'] %}
-				<li><a id="missingLink" href="#missing">Missing</a></li>
-			{% endif %}
-			{% if values['correlations'] %}
-			<li><a id="correlationsLink" href="#correlations">Correlations</a></li>
-			{% endif %}
-			<li><a id="sampleLink" href="#sample">Sample</a></li>
-		</ul>
-	</div>
+    <script>
+        if (typeof id !== 'undefined') {
+            id++;
+        } else {
+            var id = 0;
+        }
+    </script>
+    {% include 'plot.html' %}
+    <div class="row headerrow highlight">
+        <h1 style="font-size: 36px;">Data Profiling</h1>
+    </div>
+    <script>
+        //para adicionar contador no id (ids serão únicos para + de 1 report)
+        d3.select("#overviewLink").attr("href", "#overview" + id).attr("id", "overviewLink" + id);
+        d3.select("#variablesLink").attr("href", "#variables" + id).attr("id", "variablesLink" + id);
+        {% if values['missing'] %}
+        d3.select("#missingLink").attr("href", "#missing" + id).attr("id", "missingLink" + id);
+        {% endif %}
+        {% if values['correlations'] %}
+        d3.select("#correlationsLink").attr("href", "#correlations" + id).attr("id", "correlationsLink" + id);
+        {% endif %}
+        d3.select("#sampleLink").attr("href", "#sample" + id).attr("id", "sampleLink" + id);
+        d3.select("#overview").attr("id", "overview" + id);
+        d3.select("#variables").attr("id", "variables" + id);
+        {% if values['missing'] %}
+        d3.select("#missing").attr("id", "missing" + id);
+        {% endif %}
+        {% if values['correlations'] %}
+        d3.select("#correlations").attr("id", "correlations" + id);
+        {% endif %}
+        d3.select("#sample").attr("id", "sample" + id);
+    </script>
+    <div class="row variablerow">
+        <p class="h4" style="font-weight: bold;">Contents</p>
+        <ul>
+            <li><a id="overviewLink" href="#overview">Overview</a></li>
+            <li><a id="variablesLink" href="#variables">Variables</a></li>
+            {% if values['missing'] %}
+            <li><a id="missingLink" href="#missing">Missing</a></li>
+            {% endif %}
+            {% if values['correlations'] %}
+            <li><a id="correlationsLink" href="#correlations">Correlations</a></li>
+            {% endif %}
+            <li><a id="BiDLink" href="#BiD">Bi-dimensional Chord</a></li>
+            <li><a id="TableLink" href="#table_header_viz">Data Table</a></li>
+        </ul>
+    </div>
     <div id="overview" class="row headerrow highlight">
-		<h1>Overview</h1>
+        <h1>Overview</h1>
     </div>
     {{ overview_html }}
     <div id="variables" class="row headerrow highlight">
         <h1>Variables</h1>
     </div>
     {{ rows_html }}
-	{% if values['missing'] %}
-	<div id="missing" class="row headerrow highlight">
-		<h1 class="inline-block">Missing Values</h1>
-		<div class="dropdown inline-block">
-			<a class="help-button dropdown-toggle" data-toggle="dropdown"></a>
-			<div class="help dropdown-menu">
-				<p>Explore different ways to visualize the missing data. Note this visualization will comfortably accommodate up to 50 labelled variables. Original project: https://github.com/ResidentMario/missingno</p>
-			</div>
-		</div>
-	</div>
-	{{ missing_html }}
-	{% endif %}
-	{% if values['correlations'] %}
+    {% if values['missing'] %}
+    <div id="missing" class="row headerrow highlight">
+        <h1 class="inline-block">Missing Values</h1>
+        <div class="dropdown inline-block">
+            <a class="help-button dropdown-toggle" data-toggle="dropdown"></a>
+            <div class="help dropdown-menu">
+                <p>Explore different ways to visualize the missing data. Note this visualization will comfortably
+                    accommodate up to 50 labelled variables. Original project:
+                    https://github.com/ResidentMario/missingno</p>
+            </div>
+        </div>
+    </div>
+    {{ missing_html }}
+    {% endif %}
+    {% if values['correlations'] %}
     <div id="correlations" class="row headerrow highlight">
         <h1 class="inline-block">Correlations</h1>
-		<div class="dropdown inline-block">
-			<a class="help-button dropdown-toggle" data-toggle="dropdown"></a>
-			<div class="help dropdown-menu">
-				<p>Explore different correlations among the variables. Note this visualization will comfortably accommodate up to 50 labelled variables.</p>
-			</div>
-		</div>
+        <div class="dropdown inline-block">
+            <a class="help-button dropdown-toggle" data-toggle="dropdown"></a>
+            <div class="help dropdown-menu">
+                <p>Explore different correlations among the variables. Note this visualization will comfortably
+                    accommodate up to 50 labelled variables.</p>
+            </div>
+        </div>
     </div>
     {{ correlation_html }}
-	{% endif %}
+    {% endif %}
     <div id="sample" class="row headerrow highlight">
         <h1 class="inline-block">Sample</h1>
-		<div class="dropdown inline-block">
-			<a class="help-button dropdown-toggle" data-toggle="dropdown"></a>
-			<div class="help dropdown-menu">
-				<p>The first 5 Lines of the Dataframe are presented.</p>
-			</div>
-		</div>
+        <div class="dropdown inline-block">
+            <a class="help-button dropdown-toggle" data-toggle="dropdown"></a>
+            <div class="help dropdown-menu">
+                <p>Relationship between categorical data.</p>
+            </div>
+        </div>
     </div>
     {{ sample_html }}
+    {% if bid_html %}
+    <div id="BiD" class="row headerrow highlight">
+        <h1 class="inline-block">Bi-Dimensional Chord Diagram</h1>
+        <div class="dropdown inline-block">
+            <a class="help-button dropdown-toggle" data-toggle="dropdown"></a>
+            <div class="help dropdown-menu">
+                <p>Shows relationship between variables of two different columns of the dataset. The black nodes are from the left-selected column.</p>
+            </div>
+        </div>
+    </div>
+    {{ bid_html }}
+    {% endif %}
+    {% if table_html %}
+    <div id="table_header_viz" class="row headerrow highlight">
+        <h1 class="inline-block">Data Table</h1>
+        <div class="dropdown inline-block">
+            <a class="help-button dropdown-toggle" data-toggle="dropdown"></a>
+            <div class="help dropdown-menu">
+                <p>All the data is shown in tabular form.</p>
+            </div>
+        </div>
+    </div>
+    {{ table_html }}
+    {% endif %}
 </div>
