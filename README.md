@@ -1,100 +1,92 @@
-# MAINTAINERS WANTED - Notice of neglect
-This package does not have a current active maintainer. If you are interested to take on the role of main developer, feel free to reach out to @JosPolfliet.
+# Data Profiling [![](https://img.shields.io/badge/python-3-blue.svg)](https://www.python.org/)
 
-# pandas-profiling
+### **Disclaimer: we are still updating the documentation for this repository.**
 
-Generates profile reports from a pandas `DataFrame`. The pandas `df.describe()` function is great but a little basic for serious exploratory data analysis.
+Data profiling is a tool that helps data analysts in the process of data analysis and understanding. It summarizes a given dataset with an informative report.
 
-For each column the following statistics - if relevant for the column type - are presented in an interactive HTML report:
+Based on [Pandas Profiling](https://github.com/pandas-profiling/pandas-profiling) 1.4.1.
 
-* **Essentials**:  type, unique values, missing values
-* **Quantile statistics** like minimum value, Q1, median, Q3, maximum, range, interquartile range
-* **Descriptive statistics** like mean, mode, standard deviation, sum, median absolute deviation, coefficient of variation, kurtosis, skewness
-* **Most frequent values**
-* **Histogram**
-* **Correlations** highlighting of highly correlated variables, Spearman and Pearson matrixes
-
-## Demo
-
-[Click here](http://nbviewer.ipython.org/github/JosPolfliet/pandas-profiling/blob/master/examples/meteorites.ipynb) to see a live demo.
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Getting started](#getting-started)
+  - [Report example](#report-example)
+- [Dependencies](#dependencies)
+- [Citation](#citation)
+- [About the Authors](#about-the-authors)
 
 ## Installation
 
-### Using pip
-
-You can install using the pip package manager by running
-
-    pip install pandas-profiling
-    
-### Using conda
-
-You can install using the conda package manager by running
-
-    conda install pandas-profiling
-
-### From source
-
-Download the source code by cloning the repo or by pressing 'Download ZIP' on this page. Install by navigating to the proper directory and running
-
-    python setup.py install
+Data Profiling can be installed by running ```pip install https://github.com/DAVINTLAB/pandas-profiling/archive/master.zip```.
 
 ## Usage
 
-The profile report is written in HTML5 and CSS3, which means pandas-profiling requires a modern browser. 
+Data Profiling will return its report in the form of a page written in HTML.
 
-### Jupyter Notebook (formerly IPython)
+### Getting started
 
-We recommend generating reports interactively by using the Jupyter notebook. 
-
-Start by loading in your pandas DataFrame, e.g. by using
+The use of Jupyter Notebook is recommended as it can make the experience more interactive. The first step is to import the necessary libraries.
 ```python
-import numpy as np
 import pandas as pd
-import pandas_profiling
-
-df=pd.DataFrame(
-    np.random.rand(100, 5),
-    columns=['a', 'b', 'c', 'd', 'e']
-)
+from pandas_profiling import ProfileReport
 ```
-To display the report in a Jupyter notebook, run:
+A [pandas](https://pandas.pydata.org/) dataframe will serve as the dataset that will be used to generate the report. In this example, we are using the Iris dataset.
 ```python
-pandas_profiling.ProfileReport(df)
+df = pd.read_csv("https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data", encoding='UTF-8')
 ```
-To retrieve the list of variables which are rejected due to high correlation:
+In Jupyter Notebook, simply calling the report will display it.
 ```python
-profile = pandas_profiling.ProfileReport(df)
-rejected_variables = profile.get_rejected_variables(threshold=0.9)
+ProfileReport(df)
 ```
-If you want to generate a HTML report file, save the `ProfileReport` to an object and use the `to_file()` function:
+For more visualizations related specifically to categorical data (the Bi-Dimensional Chord Diagram and the Data Table), use:
 ```python
-profile = pandas_profiling.ProfileReport(df)
-profile.to_file(outputfile="output.html")
+ProfileReport(df, extended_report=True)
 ```
-### Python
 
-For standard formatted CSV files that can be read immediately by pandas, you can use the `profile_csv.py` script. Run
+### Report example
 
-	python profile_csv.py -h
+Here is a comparison between Pandas Profiling 1.4.1 (a) and Data Profiling (b).
 
-for information about options and arguments.
+![alt text][report]
 
-### Advanced usage
-
-A set of options are available in order to adapt the report generated.
-
-* `bins` (`int`): Number of bins in histogram (10 by default).
-* Correlation settings:
-    * `check_correlation` (`boolean`): Whether or not to check correlation (`True` by default)
-    * `correlation_threshold` (`float`): Threshold to determine if the variable pair is correlated (0.9 by default).
-    * `correlation_overrides` (`list`): Variable names not to be rejected because they are correlated (`None` by default).
-    * `check_recoded` (`boolean`): Whether or not to check recoded correlation (`False` by default). Since it's an expensive computation it can be activated for small datasets.
-* `pool_size` (`int`): Number of workers in thread pool. The default is equal to the number of CPU.
+[report]: https://imgur.com/VU9WCua.png
 
 ## Dependencies
 
-* **An internet connection.** Pandas-profiling requires an internet connection to download the Bootstrap and JQuery libraries. I might change this in the future, let me know if you want that sooner than later.
-* python (>= 2.7)
-* pandas (>=0.19)
-* matplotlib  (>=1.4)
-* six (>=1.9)
+[Python 3](https://www.python.org/) is required in order to run Data Profiling. Also, the following Python libraries are used:
+
+| Library                                               | Version |
+|-------------------------------------------------------|---------|
+| [pandas](https://pandas.pydata.org/)                  | 0.23.4  |
+| [numpy](https://numpy.org/)                           | 1.15.4  |
+| [matplotlib](https://matplotlib.org/2.1.2/index.html) | 3.0.2   |
+| [jinja](http://jinja.pocoo.org/docs/2.10/)            | 2.10.0  |
+
+Internet access is necessary to load the JavaScript libraries. The following JavaScript libraries are used:
+
+| Library                                      | Version |
+|----------------------------------------------|---------|
+| [d3](https://d3js.org/)                      | 5.9.7   |
+| [jquery](https://jquery.com/)                | 3.4.1   |
+| [bootstrap](https://getbootstrap.com/)       | 3.3.6   |
+
+## Citation
+
+Please refer to this tool by citing the works indicated below.
+
+**For the tool in general:**
+
+A. M. P. Milani, “Preprocessing proﬁling model for visual analytics”, Master’s thesis, School of Technology, PUCRS, Porto Alegre, 2019. [Online]. Available: http://tede2.pucrs.br/tede2/handle/tede/9007
+
+**For the Bi-Dimensional Chord Diagram and the Data Table, specifically:**
+
+L. Ciocari, “Uso de visualização de dados para auxiliar no pré-processamento de dados categóricos”, Undergraduate thesis, School of Technology, PUCRS, Porto Alegre, 2019.
+
+## About the Authors
+
+We are members of the Data Visualization and Interaction Lab (DaVInt) at PUCRS:
+- Isabel H. Manssour -- Professor Coordinator of DaVInt -- 2017-current.
+- Alessandra M. P. Milani -- Master Student in Computer Science -- 2017-2019.
+- Lucas B. Ciocari -- Graduate Student in Computer Science -- 2019-current.
+- Lucas A. Loges -- Undergraduate Student in Computer Science -- 2019-current.
+
+More information can be found [here](https://www.inf.pucrs.br/davint/).
