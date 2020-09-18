@@ -86,7 +86,7 @@ L. Ciocari, “Uso de visualização de dados para auxiliar no pré-processament
 We are members of the Data Visualization and Interaction Lab (DaVInt) at PUCRS:
 - Isabel H. Manssour -- Professor Coordinator of DaVInt -- 2017-current.
 - Alessandra M. P. Milani -- Master Student in Computer Science -- 2017-2019.
-- Lucas B. Ciocari -- Graduate Student in Computer Science -- 2019-current.
+- Lucas B. Ciocari -- Graduate Student in Computer Science -- 2020-current.
 - Lucas A. Loges -- Undergraduate Student in Computer Science -- 2019-current.
 
 More information can be found [here](https://www.inf.pucrs.br/davint/).
